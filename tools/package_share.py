@@ -326,6 +326,13 @@ pause
 """
 
 
+SITE_BLOCK = """
+SpeakTosi 官网与定制服务
+  https://www.speaktosi.com    (域名与备案办理中, 即将上线)
+  需要【专属 AI 老师形象 / 克隆声音 / 课程定制】, 欢迎从官网联系我们。
+"""
+
+
 def install_txt(mode: str) -> str:
     if mode in ("mini", "mini-code"):
         return mini_install_txt(mode)
@@ -378,9 +385,9 @@ def install_txt(mode: str) -> str:
   运行档位默认 auto: 内存 16~28G 会自动落 lite(单 TTS), <18G 落 ultra(只有卡通系老师)。
   想恢复被裁掉的那部分(一般不需要): 见 docs\\assets-download.md 的 audiocpp 段。
 """
-        return head
+        return head + SITE_BLOCK
     if mode == "full":
-        return head
+        return head + SITE_BLOCK
     return """SpeakTosi 分享包 · 安装说明
 ==================================
 
@@ -412,7 +419,7 @@ def install_txt(mode: str) -> str:
 
 六、端口
   8010 / 8011 数字人引擎, 18091 / 18092 克隆语音, 18999 看门狗单实例锁, 8765 后端
-"""
+""" + SITE_BLOCK
 
 
 def add_file(z: zipfile.ZipFile, fp: str, arc: str, big: bool) -> None:

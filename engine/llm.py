@@ -6,8 +6,8 @@ if TYPE_CHECKING:
 from utils.logger import logger
 
 # 1019 截断取证: 存在 flag 文件时把每个 SSE chunk 原样落盘(无 flag 时零开销)
-_DBG_FLAG = r'C:\Speaktosi\engine\llm_stream_debug.on'
-_DBG_LOG = r'C:\Speaktosi\engine\llm_stream_debug.log'
+_DBG_FLAG = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'llm_stream_debug.on')
+_DBG_LOG = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'llm_stream_debug.log')
 
 
 def _mk_dbg(sid, model, has_img, message):
