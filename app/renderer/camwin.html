@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>📷 拍照问老师</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:#06080d; color:#e8e8e8;
+    font:13px 'Microsoft YaHei',sans-serif; overflow:hidden; user-select:none; }
+  body { display:flex; flex-direction:column; }
+  /* 标题栏=拖动把手（frameless 窗走系统级拖拽，可自由移动） */
+  #bar { flex:none; height:32px; display:flex; align-items:center; gap:8px; padding:0 10px;
+    background:linear-gradient(180deg,#101826,#0a0f18); border-bottom:1px solid #223;
+    -webkit-app-region: drag; }
+  #bar .ttl { color:#3ddc84; font-size:12px; flex:1; pointer-events:none; }
+  #bar select { -webkit-app-region: no-drag; max-width:130px; background:#151a24; color:#cfd8e3;
+    border:1px solid #333; border-radius:5px; height:22px; font-size:11px; }
+  #x { -webkit-app-region: no-drag; background:none; border:0; color:#8a8a8a; cursor:pointer; font-size:14px; }
+  #x:hover { color:#ff6b6b; }
+  #stage { position:relative; flex:1; min-height:0; background:#000; }
+  #vid { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:#000; }
+  #thumb { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#000; display:none; }
+  #hint { position:absolute; left:8px; bottom:8px; max-width:90%; font-size:11px; color:#9fd6b8;
+    background:rgba(0,0,0,.5); padding:3px 8px; border-radius:6px; pointer-events:none; }
+  #livedot { position:absolute; right:8px; top:8px; display:none; align-items:center; gap:5px;
+    font-size:11px; color:#bff5d3; background:rgba(0,0,0,.55); padding:3px 8px; border-radius:6px; pointer-events:none; }
+  #livedot i { width:8px; height:8px; border-radius:50%; background:#3ddc84; box-shadow:0 0 6px #3ddc84; animation:pulse 1.6s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+  #ctl { flex:none; display:flex; align-items:center; gap:8px; padding:8px 10px; background:#0a0f18; }
+  #snap { width:52px; height:36px; border:0; border-radius:8px; cursor:pointer; font-size:17px;
+    background:linear-gradient(145deg,#3ddc84,#1f8a4f); color:#04120a; }
+  #retake { display:none; height:36px; padding:0 12px; border:1px solid #3ddc84; border-radius:8px;
+    background:none; color:#3ddc84; cursor:pointer; font-size:12px; }
+  #q { flex:1; min-width:0; height:36px; background:#151a24; color:#e8e8e8; border:1px solid #444;
+    border-radius:8px; padding:0 10px; font:13px 'Microsoft YaHei',sans-serif; outline:none; }
+  #go { display:none; height:36px; padding:0 14px; border:0; border-radius:8px; cursor:pointer; font-size:12px;
+    background:linear-gradient(145deg,#3ddc84,#1f8a4f); color:#04120a; }
+  /* 1013 挂眼模式(A): 常驻采样, 学员免快门直接问 */
+  #eye { height:36px; padding:0 10px; border:1px solid #3ddc84; border-radius:8px; background:none;
+    color:#3ddc84; cursor:pointer; font-size:12px; white-space:nowrap; }
+  #eye.on { background:linear-gradient(145deg,#3ddc84,#1f8a4f); color:#04120a; }
+</style>
+</head>
+<body>
+  <div id="bar">
+    <span class="ttl">📷 拍照问老师（按住标题栏可移动 · 拖边缘可放大）</span>
+    <select id="sel" title="切换摄像头"></select>
+    <button id="x" title="关闭">✕</button>
+  </div>
+  <div id="stage">
+    <video id="vid" autoplay playsinline muted></video>
+    <img id="thumb" alt="">
+    <span id="hint">开启摄像头…</span>
+    <span id="livedot"><i></i><span id="livetx">挂眼中</span></span>
+  </div>
+  <div id="ctl">
+    <button id="eye" title="挂眼模式：老师持续看着镜头，你直接开口/打字问，免拍照">👁 挂眼</button>
+    <button id="snap" title="拍照">📸</button>
+    <button id="retake">↻ 重拍</button>
+    <input id="q" placeholder="想问什么？如：这个用英语怎么说（可留空）">
+    <button id="go">发送</button>
+  </div>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const vid = $('vid'), thumb = $('thumb'), hint = $('hint'), sel = $('sel'),
+        snap = $('snap'), retake = $('retake'), go = $('go'), q = $('q'),
+        eye = $('eye'), livedot = $('livedot'), livetx = $('livetx');
+  const api = window.camApi || { send: () => {}, close: () => {} };
+  const API = 'http://127.0.0.1:8765';      // backend: /frame 采样 / /eye 状态
+  let stream = null, shot = null;
+  const say = (m) => { hint.textContent = m; };
+  function stop() { if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; } vid.srcObject = null; }
+
+  // ---------- 1013 挂眼模式(A) ----------
+  let eyeOn = false, eyeTick = null, eyeSec = 2, failN = 0, noVidN = 0;
+  function grab(w, js) {                              // 等比缩到长边≤w JPEG（与快门同链路参数）
+    if (!stream || !vid.videoWidth) return null;
+    const vw = vid.videoWidth, vh = vid.videoHeight;
+    const sc = Math.min(1, w / Math.max(vw, vh));
+    const cv = document.createElement('canvas');
+    cv.width = Math.round(vw * sc); cv.height = Math.round(vh * sc);
+    cv.getContext('2d').drawImage(vid, 0, 0, cv.width, cv.height);
+    return cv.toDataURL('image/jpeg', js);
+  }
+  async function postFrame() {
+    const img = grab(768, 0.8);
+    if (!img) {
+      // 1019fix: 拿不到画面时不能静默死掉（旧版直接 return，老师永远"看不见"）
+      if (++noVidN >= 4) {
+        noVidN = 0;
+        say('没拿到画面（摄像头未就绪/被占用），正在重试…');
+        if (!stream || !vid.videoWidth) { try { await open(); } catch (e) {} }
+      }
+      return;
+    }
+    noVidN = 0;
+    try {
+      const r = await fetch(API + '/frame', { method: 'POST',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: img }) });
+      const j = await r.json();
+      if (j && j.ok) { failN = 0; livedot.style.display = 'flex'; livetx.textContent = '挂眼中 · 老师已看到'; }
+      else throw new Error(j && j.msg || 'rejected');
+    } catch (e) {
+      if (++failN === 3) say('挂眼暂停：连不上对话服务（' + e.message + '）');
+      livedot.style.display = 'none';
+    }
+  }
+  async function eyeStart() {
+    try {
+      const st = await (await fetch(API + '/eye', { cache: 'no-store' })).json();
+      if (st.enabled === false) { say('挂眼总开关在设置页里是关的'); return; }
+      eyeSec = Math.min(Math.max(st.interval || 2, 1), 30);
+    } catch (e) { eyeSec = 2; }                       // backend 探不到也允许开, 靠 postFrame 报错
+    if (!stream) await open();
+    if (!stream) return;
+    eyeOn = true; eye.classList.add('on'); eye.textContent = '👁 挂眼中';
+    postFrame();
+    eyeTick = setInterval(postFrame, eyeSec * 1000);
+    say('挂眼模式：老师正在看镜头。直接打字或按住麦克风问，不用拍照。（' + eyeSec + 's 采样一次）');
+  }
+  function eyeStop(manual) {
+    eyeOn = false; clearInterval(eyeTick); eyeTick = null;
+    eye.classList.remove('on'); eye.textContent = '👁 挂眼';
+    livedot.style.display = 'none';
+    try { fetch(API + '/eye/off', { method: 'POST' }).catch(() => {}); } catch (e) {}
+    if (manual) say('挂眼已停。要拍照问老师就按 📸');
+  }
+  eye.onclick = () => { eyeOn ? eyeStop(true) : eyeStart(); };
+
+  async function open() {
+    say('开启摄像头…');
+    try {
+      stop(); shot = null;
+      let devs = [];
+      try { devs = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput'); } catch (e) {}
+      const cur = sel.value;
+      sel.innerHTML = '';
+      devs.forEach((d, i) => { const o = document.createElement('option'); o.value = d.deviceId; o.textContent = d.label || ('摄像头 ' + (i + 1)); sel.appendChild(o); });
+      if (cur && devs.some(d => d.deviceId === cur)) sel.value = cur;
+      const cs = { audio: false, video: devs.length ? { deviceId: { exact: sel.value || devs[0].deviceId } } : true };
+      stream = await navigator.mediaDevices.getUserMedia(cs);
+      vid.srcObject = stream;
+      await vid.play().catch(() => {});
+      thumb.style.display = 'none'; retake.style.display = 'none'; go.style.display = 'none';
+      snap.style.display = ''; vid.style.visibility = 'visible';
+      if (!eyeOn) say('对准不认识的东西，按 📸 拍照，或点 👁 挂眼直接问');
+    } catch (e) {
+      say('摄像头不可用：' + (e && e.name ? e.name : e) + '（检查占用/权限）');
+    }
+  }
+  sel.addEventListener('change', open);
+  snap.onclick = () => {
+    if (!stream || !vid.videoWidth) { say('画面还没准备好，稍等…'); return; }
+    shot = grab(768, 0.85);
+    if (!shot) { say('画面还没准备好，稍等…'); return; }
+    if (!eyeOn) stop();                               // ★快门即释放设备（隐私灯灭）；挂眼时保持常开
+    thumb.src = shot; thumb.style.display = 'block'; vid.style.visibility = 'hidden';
+    // 1012v2fix: 必须显式 'block'——CSS里#go/#retake默认display:none，赋''=清除内联样式落回none，按钮永远不出现
+    snap.style.display = 'none'; retake.style.display = 'block'; go.style.display = 'block';
+    say('拍好了，检查一下，发送后本窗自动关闭'); q.focus();
+  };
+  retake.onclick = () => open();
+  go.onclick = () => {
+    if (!shot) { say('先按 📸 拍照'); return; }
+    const s = shot; shot = null;
+    api.send({ q: (q.value || '').trim(), image: s });   // 主进程转发给老师窗并关闭本窗
+    // 1012v2保险: 主进程2.5s内没关窗=通道异常, 按钮留在原地可重试, 不把人锁死
+    setTimeout(() => {
+      try { if (document.getElementById('go') && shot === null) { shot = s; go.style.display = 'block'; retake.style.display = 'block'; say('没发出去？再点一次发送，或 ↻ 重拍'); } } catch (e) {}
+    }, 2500);
+  };
+  q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go.onclick(); } });
+  $('x').onclick = () => api.close();
+  window.addEventListener('pagehide', () => { if (eyeOn) eyeStop(false); stop(); });  // 窗销毁即停采样+释放设备
+  open();
+  // 1019fix: 设置页「挂眼」开着 => 打开本窗即自动开始采样（不必再手点 👁）。
+  // 病根: 旧版只有手点 👁 才开始推帧；设置里开着挂眼但没人点 → backend /frame 无帧 → 老师"看不见你"。
+  (async () => {
+    try {
+      const st = await (await fetch(API + '/eye', { cache: 'no-store' })).json();
+      if (st && st.enabled === true) {
+        say('设置里「挂眼」是开着的 → 自动开始看着你…');
+        await eyeStart();
+      }
+    } catch (e) {}
+  })();
+})();
+</script>
+</body>
+</html>

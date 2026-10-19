@@ -1,0 +1,1 @@
+{"model":"qwen3.8-27b","messages":[{"role":"user","content":"reply with one word: ok"}],"max_tokens":10,"stream":false}

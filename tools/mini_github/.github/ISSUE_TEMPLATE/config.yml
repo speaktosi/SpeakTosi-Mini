@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 官网 / 定制服务 (SpeakTosi)
+    url: https://www.speaktosi.com
+    about: 官网 · 专属 AI 老师形象 / 克隆声音 / 课程定制与部署支持。
+  - name: 社区讨论 (Discussions)
+    url: https://github.com/maintainer/SpeakTosi-Mini/discussions
+    about: 请在 Discussions 提出问题、分享想法、与其他用户交流。

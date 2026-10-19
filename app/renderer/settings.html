@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="UTF-8"><title>SpeakTosi 设置</title>
+<style>
+ body { font:14px/1.6 "Microsoft YaHei",sans-serif; background:#14161c; color:#e8e2d5; padding:18px; }
+ h2 { font-size:16px; color:#d4af37; margin:2px 0 12px; }
+ label { display:block; margin:12px 0 4px; color:#b8b0a0; font-size:12px; }
+ input, textarea, select { width:100%; box-sizing:border-box; padding:8px; border-radius:8px; border:1px solid #3a3f4c; background:#1d2029; color:#eee; font:14px "Microsoft YaHei",sans-serif; }
+ textarea { height:150px; }
+ button { margin:10px 8px 0 0; padding:8px 18px; border:0; border-radius:8px; background:#d4af37; color:#14161c; font-weight:bold; cursor:pointer; }
+ button.gray { background:#3a3f4c; color:#ddd; }
+ #health { font-size:12px; color:#8a8; margin-top:10px; }
+ .row { display:flex; gap:10px; } .row>div { flex:1; }
+</style></head><body>
+<h2>SpeakTosi Strong · 设置</h2>
+<div id="health">检测后端…</div>
+<label>姓名</label><input id="name">
+<label>人设 System Prompt（她的灵魂）</label><textarea id="system"></textarea>
+<div class="row"><div>
+  <label>段位预设（按学生水平一键换灵魂；改动即生效，正文可继续手改）</label>
+  <select id="stageSel">
+    <option value="">— 选择段位 —</option>
+    <option value="stage_zero">零基始 · 小学/入门 (A0-A1)</option>
+    <option value="stage_jh">初中-高中 · 进阶 (A2-B1)</option>
+    <option value="stage_college">大学生 · 冲刺 (B1-B2, CET/IELTS)</option>
+    <option value="stage_scholar">专业学者 · 教研（当前线上版）</option>
+  </select>
+</div><div>
+  <label>选择老师（样子 + 声音 + 灵魂一体切换，重启老师窗口即生效；见面语自动用本人音色问好）</label>
+  <select id="avatarSel"><option value="aiteacher_demo">加载中…</option></select>
+</div></div>
+<div id="avatarPrev" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
+<div id="stagePrev" style="display:none"><label>段位内容预览（应用后写入上方 System Prompt）</label><textarea id="stagePrevTxt" readonly style="height:110px;color:#9fd"></textarea></div>
+<div class="row" style="align-items:flex-end"><div style="flex:0 0 auto"><button class="gray" id="stageApply" style="display:none">应用此段位</button></div><div style="flex:0 0 auto;font-size:11px;color:#8a8" id="stageNow"></div></div>
+<label>LLM 地址（云端大脑端点，默认阿里云百炼 token-plan · 仅换供应商/改本地部署时才动）</label><input id="llm_base">
+<label>模型名</label><input id="llm_model">
+<div id="tokenBox" style="margin:10px 0 4px;padding:8px 10px;border:1px solid #2f3542;border-radius:8px;background:#171b22">
+  <label style="margin:0">云端 Token（阿里云百炼 / token-plan 的 Key · 本机独有，只存本机 app/backend/.env，不随网盘包走）</label>
+  <div class="row" style="align-items:flex-end;margin-top:4px">
+    <div style="flex:1"><input id="apiKeyInput" type="password" placeholder="sk-…（已配置时留空 = 不改动）" autocomplete="off"></div>
+    <div style="flex:0 0 auto"><button class="gray" id="saveKeyBtn" style="margin-top:2px">保存并测试</button></div>
+  </div>
+  <div id="keyState" style="font-size:12px;color:#8a9aa8;margin-top:6px">检测中…</div>
+  <label style="margin-top:10px">机器运行档位（16~24G 内存的机器请选「轻量」；只有 ≤16G 才选「极简」· 改档后重启本程序生效）</label>
+  <div class="row" style="align-items:flex-end">
+    <div style="flex:1"><select id="runtimeMode">
+      <option value="auto">自动（按内存/显存自选 · 推荐，什么都不用管）</option>
+      <option value="full">全量（显存≥16G 且 内存≥29G：双 TTS 预取，开口最快）</option>
+      <option value="lite">轻量（16~24G 内存：单 TTS，其余全保留，开口略慢）</option>
+      <option value="ultra">极简（≤16G 内存兜底：只跑卡通系老师，真人系老师不可用）</option>
+    </select></div>
+    <div style="flex:0 0 auto"><button class="gray" id="saveModeBtn" style="margin-top:2px">保存档位</button></div>
+  </div>
+  <div id="modeState" style="font-size:12px;color:#8a9aa8;margin-top:6px"></div>
+</div>
+<div class="row"><div><label>音色（选老师自动对齐本人克隆音色；可手动试听其他）</label><select id="tts_voice">
+  <option value="default">加载中…</option>
+</select></div><div><label>语速（保音色的变速档）</label><select id="speech_rate"><option>-25%</option><option>+0%</option><option>+25%</option></select></div></div>
+<div class="row"><div><label>记忆容量（老师能记住多久的课堂内容，按双人正常语速打满估算）</label><select id="memory_bytes">
+  <option value="60000">1 小时课堂（约 60 KB）</option>
+  <option value="120000">2 小时课堂（约 120 KB）· 推荐</option>
+  <option value="180000">3 小时课堂（约 180 KB）</option>
+  <option value="240000">4 小时课堂（约 240 KB）</option>
+</select></div><div><label>语音发送方式（按住🎙说完松手后）</label><select id="voice_confirm_mode">
+  <option value="auto">直接发送（松手即发给老师）</option>
+  <option value="confirm">确认后再发送（先显示 ✓发送 / ✗取消，可改文字）</option>
+</select></div>
+<div><label>回答长度（老师每次回复的字数上限；越长讲得越透，越短开口越快）</label><select id="max_words">
+  <option value="0">不限（最长 · 讲解最充分）</option>
+  <option value="200">长回答 · 约 3-6 句（讲透）</option>
+  <option value="120">标准 · 约 3-5 句（推荐）</option>
+  <option value="80">简答 · 约 2-4 句（流畅）</option>
+  <option value="50">极简 · 1-2 句（最快 · 卡顿时用）</option>
+</select></div></div>
+<button id="save">保存</button>
+<button class="gray" id="testTts">试听</button>
+<button class="gray" id="remindToggle">定时提醒</button>
+<button class="gray" id="calib">校准五官</button>
+<button class="gray" id="reset">清空记忆</button>
+<div style="margin-top:10px;font-size:12px">
+  <label style="width:auto;display:inline-flex;align-items:center;gap:6px;color:#cfd8e3"><input type="checkbox" id="visionEnabled" style="width:auto;vertical-align:middle"> 视觉老师（📷 拍照问老师 / 摄像头看图）</label>
+  <div class="row" style="margin-top:6px"><div><label>看图专用模型（留空=用对话同款模型，普通学员不用改）</label><input id="visionModel" placeholder="留空即可"></div></div>
+  <div style="margin-top:8px;font-size:12px">
+    <label style="width:auto;display:inline-flex;align-items:center;gap:6px;color:#cfd8e3"><input type="checkbox" id="eyeEnabled" style="width:auto;vertical-align:middle"> 挂眼模式（📷 窗里 👁：老师持续看镜头，学员免快门直接问）</label>
+    <div class="row" style="margin-top:6px"><div><label>采样间隔（秒，1~30。越小越"实时"，越大越省）</label><input id="eyeInterval" type="number" min="1" max="30" step="1" value="2" style="width:90px"></div></div>
+  </div>
+</div>
+<div id="remindBox" style="display:none;border:1px solid #3a3f4c;border-radius:8px;padding:4px 12px 10px;margin-top:10px;background:#181b23">
+  <label style="margin-top:8px"><input type="checkbox" id="rmEnabled" style="width:auto;vertical-align:middle"> 开启定时提醒（关闭=完全静默）</label>
+  <div class="row">
+    <div><label>上课超时提醒（分钟，0=不提醒）</label><input id="rmLimit" type="number" min="0" max="600" value="45"></div>
+    <div><label>到点叫上课（每天几点，留空=不提醒）</label><input id="rmStart" type="time" value=""></div>
+  </div>
+  <div style="font-size:11px;color:#8a8;margin-top:4px">下课提醒：当堂课持续超过设定分钟数，老师和系统通知会提醒你休息；上课提醒：到设定时刻，老师自动现身喊你上课。保存后约 20 秒内生效。</div>
+</div>
+<script>
+const A = window.teacher.apiBase;
+let loadedAvatar = null;   // 1003: 服务端当前形象(load时回填), 用于判断"形象是否变了"
+let AV_LOADED = false;     // 1005: /avatars 清单是否加载成功(失败时禁止发送avatar_id防误切老师)
+let SYS_SNAP = "";         // 1005: 灵魂文本快照(脏检测锚点)
+// 1002修复: 裸 name 解析到 window.name(内置字符串)而非 #name 输入框 → name.value=undefined
+// → POST body 丢 name 字段 → "姓名改了保存不上"假象。显式取 DOM 引用。
+const $ = (id) => document.getElementById(id);
+const nameEl = $("name");
+let VOICES = [];            // 1005: /voices 动态清单 [{id,name,emoji,avatar_id,teacher}]
+let AV2VOICE = {};          // 1005: avatar_id → voice preset 映射(选老师自动对齐音色)
+async function loadVoices() {
+  try {
+    const v = await (await fetch(A + "/voices")).json();
+    VOICES = v.voices || [];
+    tts_voice.innerHTML = "";
+    for (const it of VOICES) {
+      const o = document.createElement("option");
+      o.value = it.id; o.textContent = (it.emoji || "") + " " + it.name;
+      tts_voice.appendChild(o);
+      if (it.avatar_id) AV2VOICE[it.avatar_id] = it.id;
+    }
+    AV2VOICE["aiteacher_demo"] = "default";
+    return v;
+  } catch (e) { return null; }
+}
+async function load() {
+  const p = await (await fetch(A + "/personality")).json();
+  nameEl.value = p.name; $("system").value = p.system;
+  SYS_SNAP = p.system || "";   // 1005: 快照——保存时脏检测, 防旧prompt覆写新老师灵魂
+  const nm = (p.name || 'SpeakTosi').trim();
+  document.querySelector('h2').textContent = nm + ' · 设置';
+  document.title = nm + ' 设置';
+  const c = await (await fetch(A + "/config")).json();
+  loadedAvatar = c.avatar_id || "aiteacher_demo";   // 1003: 记录服务端当前形象(判断变化用)
+  const vv = await loadVoices();   // 1005: 音色下拉动态化(四老师克隆音色), 先加载再回填选中
+  llm_base.value = c.llm_base; llm_model.value = c.llm_model;
+  // 1005: 选中=当前有效克隆音色(服务端 _eff_voice 口径); 旧静态edge值不在清单里则回落到老师绑定音色
+  const curV = (vv && vv.current) || c.audiocpp_tts_voice || "default";
+  if ([...tts_voice.options].some(o => o.value === curV)) tts_voice.value = curV;
+  else tts_voice.value = AV2VOICE[loadedAvatar] || "default";
+  speech_rate.value = c.speech_rate || "+0%";
+  memory_bytes.value = String(c.memory_bytes || 120000);
+  voice_confirm_mode.value = c.voice_confirm_mode === "confirm" ? "confirm" : "auto";   // 1006v3
+  max_words.value = String(c.max_words || 0);   // 1016短答模式
+  // ---------- 1003 卡通形象 ----------
+  try {
+    const av = await (await fetch(A + "/avatars")).json();
+    const list = av.avatars || [];
+    AV_LOADED = list.length > 0;   // 1005: 只有真拿到清单才允许发送/判断 avatar_id
+    avatarSel.innerHTML = "";
+    const pv = $("avatarPrev"); pv.innerHTML = "";
+    for (const a of list) {
+      const o = document.createElement("option");
+      o.value = a.avatar_id; o.textContent = a.name;
+      if (a.avatar_id === c.avatar_id) o.selected = true;
+      avatarSel.appendChild(o);
+      const img = document.createElement("img");
+      img.src = A + a.cover + "?v=1"; img.title = a.name;
+      img.style.cssText = "width:64px;height:80px;object-fit:cover;border-radius:8px;border:2px solid " + (a.avatar_id === c.avatar_id ? "#d4af37" : "#3a3f4c") + ";cursor:pointer;background:#111";
+      img.onclick = () => { avatarSel.value = a.avatar_id; tts_voice.value = AV2VOICE[a.avatar_id] || "default"; window.__AV_PICKED = true; saveCfg().then(load); };   // 1005点封面自动对齐音色; 1009: 只有"用户显式选择"才允许回传avatar_id
+      img.onload = () => {}; img.onerror = () => { img.style.display = "none"; };
+      pv.appendChild(img);
+    }
+    if (!list.some(a => a.avatar_id === c.avatar_id) && list.length) avatarSel.value = list[0].avatar_id;
+    if (!avatarSel._bound) {   // 下拉也要即时生效(与点封面等价), 只绑一次防load()重入叠加
+      avatarSel.onchange = () => {
+        // 1005音色自动对齐: 选老师瞬间音色下拉跟随(前端即时反馈; 保存时后端再强制对齐一次)
+        tts_voice.value = AV2VOICE[avatarSel.value] || "default";
+                window.__AV_PICKED = true;   // 1009: 用户显式改选 = 允许回传 avatar_id
+                saveCfg().then(load);
+      };
+      avatarSel._bound = true;
+    }
+  } catch (e) { avatarSel.innerHTML = '<option value="aiteacher_demo">默认老师</option>'; }
+  rmEnabled.checked = c.remind_enabled === true;
+  // 1012视觉老师: 开关+看图模型回显
+  document.getElementById('visionEnabled').checked = c.vision_enabled !== false;
+  document.getElementById('visionModel').value = c.vision_model || "";
+  // 1013挂眼模式: 开关+采样间隔回显
+  document.getElementById('eyeEnabled').checked = c.eye_enabled !== false;
+  document.getElementById('eyeInterval').value = Math.min(Math.max(Number(c.eye_interval) || 2, 1), 30);
+  rmLimit.value = c.remind_class_limit_min == null ? 45 : c.remind_class_limit_min;
+  rmStart.value = c.remind_class_start_at || "";
+  $("remindBox").style.display = rmEnabled.checked ? "block" : "none";
+  const h = await (await fetch(A + "/health")).json();
+    health.textContent = "LLM " + (h.llm ? "●在线" : "○未就绪") + " | TTS ●可用 | STT " + (h.stt ? "●可用" : "○未装") + " | " + h.llm_base;
+    loadSetup();   // 1019setup: 云端 Token 状态 + 生效档位回显
+  // 段位现状回显
+  try {
+    const sp = await (await fetch(A + "/stage_presets")).json();
+    STAGES = sp.presets || {};
+    const names = { stage_zero: "零基本·入门", stage_jh: "初中-高中·进阶", stage_college: "大学生·冲刺", stage_scholar: "专业学者·教研" };
+    stageNow.textContent = "当前段位: " + (names[sp.current_stage] || sp.current_stage || "专业学者·教研");
+  } catch (e) { stageNow.textContent = ""; }
+}
+// ---- 1019setup: 云端 Token 一键配置 + 运行档位(16~24G 机器) ----
+async function loadSetup() {
+  try {
+    const s = await (await fetch(A + "/setup/status")).json();
+    const m = s.mode || {};
+    $("keyState").innerHTML = (s.configured
+        ? "● 已配置" + (s.key_hint ? "（" + s.key_hint + "）" : "") + " · 来源 " + (s.source === "app.env" ? "本机 .env" : s.source)
+        : "○ 未配置 —— 粘贴 Key 后点『保存并测试』")
+      + "　| 模型 " + (s.llm_model || "-") + " @ " + (s.llm_base || "-");
+    if (!window.__MODE_USER_EDIT) $("runtimeMode").value = (m.requested && m.requested !== "auto") ? m.requested : "auto";
+    $("modeState").textContent = m.mode
+      ? "生效档位：" + m.mode + "（内存 " + m.ram_gb + "G / 显存 " + m.vram_gb + "G · TTS worker " + m.tts_workers
+        + (m.musetalk === false ? " · 真人系引擎未启动" : "") + "）"
+      : "生效档位：看门狗未运行（启动时自动写入）";
+  } catch (e) { $("keyState").textContent = "状态读取失败：" + e; }
+}
+$("saveKeyBtn").onclick = async () => {
+  const k = $("apiKeyInput").value.trim();
+  const b = $("saveKeyBtn"); b.disabled = true; b.textContent = "测试中…";
+  try {
+    const r = await (await fetch(A + "/setup/token", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: k, llm_base: llm_base.value.trim(), llm_model: llm_model.value.trim() }) })).json();
+    $("keyState").textContent = r.ok ? ("● 保存成功且云端连通（" + r.ms + "ms · " + r.var + "）")
+                                    : ("✗ 未连通：" + (r.err || "未知错误") + (k ? "（Key 已写入，可改后重试）" : ""));
+    if (r.ok && k) $("apiKeyInput").value = "";
+  } catch (e) { $("keyState").textContent = "✗ 请求失败：" + e; }
+  b.disabled = false; b.textContent = "保存并测试";
+};
+$("saveModeBtn").onclick = async () => {
+  const m = $("runtimeMode").value;
+  try {
+    const r = await (await fetch(A + "/setup/mode", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: m }) })).json();
+    $("modeState").textContent = r.ok ? ("已写入档位「" + m + "」—— 重启本程序后生效") : ("✗ " + (r.err || "失败"));
+  } catch (e) { $("modeState").textContent = "✗ " + e; }
+};
+$("runtimeMode").onchange = () => { window.__MODE_USER_EDIT = true; };
+async function saveCfg() {
+  // 1005防误切老师: /avatars 加载失败时 avatarSel 停留在默认项 aiteacher_demo,
+  // 盲目随表单发送会把老师无声切成默认(实测: 用户只想改语速点保存 → Brenda串入)。
+  // 只有清单真加载成功(AV_LOADED)才发 avatar_id; 否则后端不动老师(POST /config 按字段存在与否对齐)。
+  const body = { llm_base: llm_base.value.trim(), llm_model: llm_model.value.trim(),
+      audiocpp_tts_voice: tts_voice.value,   // 1005: 克隆音色落盘(试听选择持久化; 换老师时后端强制对齐覆盖)。
+      // 注意: 不再写 tts_voice 字段——那是 edge-tts 兜底音色(Neural系), 两套体系分开(1005混线教训)
+      speech_rate: speech_rate.value,
+      max_words: parseInt(max_words.value) || 0,   // 1016短答模式
+      memory_bytes: Number(memory_bytes.value) || 120000,   // 1006v2: 记忆容量字节预算(1-4课时四档)
+      voice_confirm_mode: voice_confirm_mode.value === "confirm" ? "confirm" : "auto",   // 1006v3: 语音直发/确认后发
+      remind_enabled: rmEnabled.checked, remind_class_limit_min: Math.max(0, Math.min(600, Number(rmLimit.value) || 0)), remind_class_start_at: rmStart.value || "",
+      vision_enabled: document.getElementById('visionEnabled').checked,                 // 1012视觉老师开关
+      vision_model: document.getElementById('visionModel').value.trim(),                // 1012看图模型(空=对话同款)
+      eye_enabled: document.getElementById('eyeEnabled').checked,                        // 1013挂眼开关
+      eye_interval: Math.min(Math.max(Number(document.getElementById('eyeInterval').value) || 2, 1), 30) };
+  // 1009fix(防静默串位): 只有"用户显式换老师"(点封面/改下拉 → 置 __AV_PICKED)才回传 avatar_id。
+  // 保存按钮及其它保存一律不带该字段 → 后端 POST /config 按字段存在与否对齐, 老师不会被无声切走。
+  // 旧行为: 每次保存都回传下拉值, 而 124 行在"当前形象不在清单里"时会把它静默复位到 list[0]
+  // (=默认老师) → 用户只想改语速/点保存, 老师却被偷换(历史 10-08 15:32 "Arthur 会话里冒 Brenda 问候语"的路径)。
+  if (window.__AV_PICKED && AV_LOADED && avatarSel && avatarSel.value) {
+    body.avatar_id = avatarSel.value; window.__AV_PICKED = false;
+  }
+  await fetch(A + "/config", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body) });
+  health.textContent = "已保存配置（模型/提醒即时生效；若换了形象，桌面老师约3秒内自动切换）";
+  // 1003(卡通形象): 形象有变化才通知主进程重载老师窗口 → 即时生效(双保险: overlay自带/config轮询)
+  // 1005: 清单没加载成功时不做换老师判断(avatarSel值不可信)
+  if (!AV_LOADED) return;
+  const wantAvatar = (avatarSel && avatarSel.value) || "aiteacher_demo";
+  if (loadedAvatar !== null && wantAvatar !== loadedAvatar) {
+    try { window.teacher.reloadWin && window.teacher.reloadWin(); } catch (e) {}
+  }
+  loadedAvatar = wantAvatar;
+}
+save.onclick = async () => {
+  // 1005提示词防混线: ①先存配置(换老师→后端重建persona) ②只有当灵魂文本真被手改过(脏)才回写,
+  // 且换老师时丢弃旧textarea内容(那是上一位老师的灵魂, 回写=串魂——"混在一块"真凶)
+  const wantAv = AV_LOADED ? ((avatarSel && avatarSel.value) || "aiteacher_demo") : loadedAvatar;
+  const teacherChanged = wantAv !== loadedAvatar;
+  const sysDirty = $("system").value !== SYS_SNAP;
+  await saveCfg();
+  if (sysDirty && !teacherChanged) {
+    await fetch(A + "/personality", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: nameEl.value, system: $("system").value }) });
+  } else if (sysDirty && teacherChanged) {
+    health.textContent = "已换老师：灵魂自动切到本人MD，旧文本框改动已丢弃（防串魂）";
+  } else {
+    await fetch(A + "/personality", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: nameEl.value }) });
+  }
+  load();
+};
+testTts.onclick = async () => {
+  // 1005: 试听=当前下拉选中的克隆音色(voice参数即时生效, 不依赖保存); 文案用老师的见面语(有则用, 更贴本人)
+  const v = tts_voice.value;
+  const it = VOICES.find(x => x.id === v);
+  let say = "Hello! I'm your AI teacher. Nice to see you tonight.";
+  try {
+    const t = await (await fetch(A + "/teachers")).json();
+    const me = (t.teachers || []).find(x => x.avatar_id === (it && it.avatar_id));
+    if (me && me.greeting) say = me.greeting;
+  } catch (e) {}
+  const j = await (await fetch(A + "/tts?text=" + encodeURIComponent(say) + "&voice=" + encodeURIComponent(v))).json();
+  new Audio(A + j.url).play();
+};
+// ---------- 定时提醒面板(原"测对话"按钮位; 1003起 /chat 带 save:false 零写库探针保留在控制台备用) ----------
+remindToggle.onclick = () => { const b = $("remindBox"); b.style.display = b.style.display === "none" ? "block" : "none"; };
+rmEnabled.onchange = () => { $("remindBox").style.display = rmEnabled.checked ? "block" : "none"; };
+// ---------- 1006v3 语音发送方式: 改选即存(单字段POST, 后端按字段合并, 不动其他配置), 桌面老师2.5s内热生效 ----------
+voice_confirm_mode.onchange = async () => {
+  try {
+    await fetch(A + "/config", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ voice_confirm_mode: voice_confirm_mode.value }) });
+    health.textContent = voice_confirm_mode.value === "confirm"
+      ? "已切换：松手后先出确认条（✓发送 / ✗取消，可直接改文字），约3秒内生效"
+      : "已切换：松手即直接发送（旧行为），约3秒内生效";
+  } catch (e) { health.textContent = "保存失败（后端在线？）: " + e.message; }
+};
+// ---------- 段位预设 ----------
+let STAGES = {};
+const stageSel = $("stageSel"), stagePrev = $("stagePrev"), stagePrevTxt = $("stagePrevTxt"), stageApply = $("stageApply"), stageNow = $("stageNow");
+stageSel.onchange = async () => {
+  const k = stageSel.value;
+  if (!k) { stagePrev.style.display = "none"; stageApply.style.display = "none"; return; }
+  if (!Object.keys(STAGES).length) { try { STAGES = (await (await fetch(A + "/stage_presets")).json()).presets || {}; } catch (e) {} }
+  stagePrevTxt.value = STAGES[k] || "(未取到段位内容)";
+  stagePrev.style.display = "block"; stageApply.style.display = "inline-block";
+  stageApply.dataset.stage = k;
+};
+stageApply.onclick = async () => {
+  const k = stageApply.dataset.stage;
+  if (!k) return;
+  if (!confirm("确定切换到该段位人设？她的说话灵魂会立即改变，并清空后端对话记忆(防旧人设残留)。")) return;
+  const j = await (await fetch(A + "/stage/apply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ stage: k }) })).json();
+  if (j.ok) { health.textContent = "段位已切换: " + k + "（语音链实时热加载, 零重启）"; load(); $("system").blur(); }
+  else { alert("切换失败: " + (j.error || "未知")); }
+};
+calib.onclick = async () => { await fetch(A + "/calibflag", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ on: true }) }); health.textContent = "校准已开启，老师窗口即将进入拖框模式"; if (window.teacher && teacher.startTeacherCalib) teacher.startTeacherCalib(); };
+reset.onclick = async () => { await fetch(A + "/reset", { method: "POST" }); health.textContent = "记忆已清空"; };
+load();
+</script>
+<div id="brandFoot" style="margin-top:18px;padding-top:10px;font-size:12px;line-height:1.7;opacity:.65">
+  SpeakTosi · AI 英语口语老师 &nbsp;|&nbsp; 官网 <a href="https://www.speaktosi.com" target="_blank" style="color:#d4af37;text-decoration:none">www.speaktosi.com</a> &nbsp;|&nbsp; 定制专属老师形象 / 声音
+</div>
+</body></html>

@@ -1,0 +1,53 @@
+# ===== 大件与运行时环境（不进仓库；见 docs/ASSETS.md 单独分发）=====
+engine/models/
+engine/venv/
+engine/data/avatars/
+engine/data/customvideo/
+runtime/
+app/node_modules/
+app/backend/.venv/
+audiocpp/models/
+audiocpp/venv/
+audiocpp/gpu/
+audiocpp/cpu/
+
+# ===== 密钥与本机个人状态（绝不入库）=====
+*.env
+app/backend/.env
+config/student_keys.env
+app/backend/config/landmarks.json
+app/backend/config/.calib
+app/backend/config/history.json
+app/backend/config/sessions.json
+app/backend/config/personas/
+app/config/electron.json
+app/config/userdata/
+.pem
+*.key
+
+# ===== 运行时产物（启动时重建）=====
+logs/
+日志/
+*.log
+__pycache__/
+*.pyc
+*.pyo
+engine/data/tts_runtime.json
+engine/data/tts_endpoints.json
+engine/data/runtime_mode_active.json
+engine/data/customvideo/eyegazecheck_report.json
+audio_cache/
+eval_cache/
+
+# ===== 打包产物 =====
+dist/
+*.zip
+*.baiduyun.uploading.cfg
+
+# ===== 编辑器 / 系统 =====
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -1,0 +1,1 @@
+# SpeakTosi: 学生请在此填入自己的 LLM key（或用环境变量 AUDIOCPP_LLM_API_KEY）

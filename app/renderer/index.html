@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>SpeakTosi</title>
+<style>
+  html, body { margin:0; padding:0; overflow:hidden; background:transparent; width:100%; height:100%; user-select:none; }
+  #stage { position:absolute; inset:0; perspective:900px; }
+  /* 老师整体：头随鼠标 + 呼吸缩放 */
+  #teacherWrap { position:absolute; right:0; bottom:0; transform:rotateY(var(--hy,0deg)) rotateX(var(--hx,0deg));
+              transform-style:preserve-3d; transition:transform .35s ease-out; cursor:pointer; }
+  #bust { display:block; transform:scale(var(--breath,1)); transform-origin:50% 100%; -webkit-user-drag:none; pointer-events:none; }
+  /* 嘴：深色椭圆遮罩，随音频能量形变 */
+  #mouth { position:absolute; background:radial-gradient(ellipse at center, rgba(30,18,18,.92) 0%, rgba(30,18,18,.55) 62%, rgba(0,0,0,0) 78%);
+           border-radius:50%; display:none; pointer-events:none; filter:blur(1.1px); }
+  /* 眨眼：眼睑贴片 — 皮肤色由 teacher.js 从额头像素实测后注入，绝不用写死的土黄 */
+  .lid { position:absolute; display:none; pointer-events:none; opacity:1;
+         border-radius:46% 46% 52% 52%; }
+  /* 眼珠微位移层 */
+  .eyeshift { position:absolute; display:none; pointer-events:none; }
+  /* 对话气泡 */
+  #bubble { position:absolute; top:6px; left:50%; transform:translateX(-50%); max-width:86%;
+            background:rgba(16,18,24,.86); color:#f2ecdf; border:1px solid rgba(212,175,55,.45);
+            border-radius:12px; padding:10px 14px; font:14px/1.55 "Segoe UI","Microsoft YaHei",sans-serif;
+            box-shadow:0 4px 18px rgba(0,0,0,.4); display:none; backdrop-filter:blur(3px); }
+  #bubble:after { content:""; position:absolute; bottom:-8px; left:50%; margin-left:-7px;
+            border:7px solid transparent; border-top-color:rgba(16,18,24,.86); }
+  #mic { position:absolute; right:8px; bottom:8px; width:42px; height:42px; border-radius:50%;
+         border:1px solid rgba(212,175,55,.5); background:rgba(16,18,24,.75); color:#d4af37; font-size:18px;
+         cursor:pointer; display:none; } /* 语音按钮（有 STT 时由 teacher.js 打开） */
+  #mic.rec { background:#8c2f2f; color:#fff; }
+  #calib { position:absolute; inset:0; display:none; pointer-events:none; }
+  .calbox { position:absolute; border:2px dashed #ff5c8a; background:rgba(255,92,138,.12); cursor:move; }
+  .calbox label { position:absolute; top:-18px; left:0; font:11px monospace; color:#ff5c8a; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="teacherWrap">
+    <img id="bust" src="../assets/teacher_bust.png" draggable="false">
+    <div id="mouth"></div>
+    <div class="lid" id="lidL"></div>
+    <div class="lid" id="lidR"></div>
+  </div>
+  <div id="bubble"></div>
+  <button id="mic" title="按住说话">🎙</button>
+  <div id="calib"></div>
+</div>
+<script src="teacher.js"></script>
+</body>
+</html>

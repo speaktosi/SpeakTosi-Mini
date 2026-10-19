@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh"><head><meta charset="utf-8"><title>桌面老师 · SpeakTosi</title>
+<style>
+ html,body{margin:0;height:100%;background:#06080d;color:#f5efdf;font-family:"Segoe UI",system-ui,sans-serif;overflow:hidden}
+ #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+ #video{width:100%;height:auto;max-height:100%;object-fit:contain;background:#000;border-radius:6px}
+ #audio{display:none}
+ #subs{position:fixed;left:0;right:0;bottom:110px;display:flex;justify-content:center;pointer-events:none;z-index:5}
+ #sub{max-width:78%;background:rgba(10,12,18,.72);border:1px solid rgba(212,175,55,.45);border-radius:10px;padding:10px 16px;font-size:19px;line-height:1.5;text-align:center;display:none}
+ #bar{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;width:min(760px,92%);display:flex;gap:10px;z-index:9}
+ #txt{flex:1;background:rgba(16,20,30,.85);border:1px solid rgba(212,175,55,.35);border-radius:10px;color:#f5efdf;padding:11px 14px;font-size:15px;outline:none}
+ #txt::placeholder{color:#7c7460}
+ .btn{background:linear-gradient(135deg,#d4af37,#8a6d1f);color:#0a0c12;border:0;border-radius:10px;padding:0 18px;font-size:14px;font-weight:600;cursor:pointer}
+ .btn.ghost{background:rgba(255,255,255,.08);color:#d8cfb4;border:1px solid rgba(212,175,55,.3)}
+ #status{position:fixed;top:10px;left:14px;font-size:12px;color:#9aa4b8;z-index:9}
+ #status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e05555;margin-right:6px;vertical-align:1px}
+ #status.on .dot{background:#3ddc84}
+</style></head><body>
+ <div id="stage"><video id="video" autoplay playsinline muted></video></div><audio id="audio" autoplay></audio>
+ <div id="subs"><div id="sub"></div></div>
+ <div id="status"><span class="dot"></span><span id="stxt">连接中…</span></div>
+ <div id="bar"><input id="txt" placeholder="跟 SpeakTosi学点什么…（Enter 发送，英文对话效果最佳）"><button class="btn" id="send">发送</button><button class="btn ghost" id="intr">打断</button></div>
+<script>
+let pc=null, sid=null, es=null, retry=0, hideT=null;
+const $=id=>document.getElementById(id);
+function setStatus(on,t){$('status').className=on?'on':'';$('stxt').textContent=t}
+function sse(id){ if(es){try{es.close()}catch(e){}} es=new EventSource('/sse?sessionid='+encodeURIComponent(id));
+ es.onmessage=ev=>{let d;try{d=JSON.parse(ev.data)}catch(e){return};const el=$('sub');
+  if(d.text){el.textContent=d.text.trim();el.style.display='block';clearTimeout(hideT)}
+  if(d.status==='end'){clearTimeout(hideT);hideT=setTimeout(()=>el.style.display='none',5000)}}}
+async function connect(){ if(pc) return; setStatus(false,'连接中…');
+ try{
+  pc=new RTCPeerConnection({sdpSemantics:'unified-plan'});
+  pc.addTransceiver('video',{direction:'recvonly'}); pc.addTransceiver('audio',{direction:'recvonly'});
+  pc.addEventListener('track',e=>{const s=e.streams[0];if(e.track.kind==='video')$('video').srcObject=s;else $('audio').srcObject=s});
+  pc.addEventListener('connectionstatechange',()=>{
+   if(pc.connectionState==='connected')setStatus(true,'已连接 · 桌面老师在线');
+   else if(pc.connectionState==='failed'||pc.connectionState==='disconnected'){setStatus(false,'断线，5秒后重连…');teardown(false);setTimeout(connect,5000)}});
+  await pc.setLocalDescription(await pc.createOffer());
+  await new Promise(r=>{if(pc.iceGatheringState==='complete')return r();const c=()=>{if(pc.iceGatheringState==='complete'){pc.removeEventListener('icegatheringstatechange',c);r()}};pc.addEventListener('icegatheringstatechange',c)});
+  const res=await fetch('/offer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:pc.localDescription.sdp,type:pc.localDescription.type})});
+  const ans=await res.json(); if(ans.code&&ans.code!==0)throw new Error(ans.msg||'offer失败'); if(!ans.sdp)throw new Error('无SDP');
+  if(ans.sessionid){sid=ans.sessionid;sse(sid)}
+  await pc.setRemoteDescription(new RTCSessionDescription({type:'answer',sdp:ans.sdp}));
+  retry=0;
+ }catch(e){ pc=null; setStatus(false,'连接失败：'+e.message+'（确认看门狗已拉起 8011）');
+  if(retry++<5)setTimeout(connect,5000); }
+}
+function teardown(closePc){ if(es){try{es.close()}catch(e){};es=null}
+ if(closePc&&pc){try{pc.close()}catch(e){}} pc=null; sid=null;
+ $('video').srcObject=null;$('audio').srcObject=null;}
+async function send(){ const t=$('txt').value.trim(); if(!t||!sid)return setStatus(false,'还没连上，稍等…');
+ $('txt').value=''; await fetch('/human',{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({text:t,type:'chat',interrupt:true,sessionid:String(sid)})}); }
+$('send').onclick=send;
+$('txt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
+$('intr').onclick=async()=>{if(sid)await fetch('/interrupt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({interrupt:true,sessionid:String(sid)})}).catch(()=>{})};
+window.addEventListener('beforeunload',()=>{if(sid)fetch('/interrupt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({interrupt:false,sessionid:String(sid),close:1})}).catch(()=>{});teardown(true)});
+connect();
+</script></body></html>

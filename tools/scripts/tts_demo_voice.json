@@ -1,0 +1,27 @@
+{
+  "host": "127.0.0.1",
+  "port": 18080,
+  "backend": "cuda",
+  "device": 0,
+  "threads": 8,
+  "models": [
+    {
+      "id": "qwen3-tts",
+      "family": "qwen3_tts",
+      "path": "{AUDIOCPP_ROOT}\\models/Qwen3-TTS-12Hz-0.6B-Base",
+      "task": "tts",
+      "mode": "offline",
+      "voice_presets": {
+        "arthur": {
+          "voice_ref": "C:/Speaktosi/audiocpp\\webui\\voice\\arthur_ref.wav",
+          "reference_text": "No, it's just a bit rough, dear, like Sage's violin. What I read was raw and heartfelt. You should be very proud for all your hard work. You've dug inside your soul and found some real gems. Next, you'll need to polish it, which will also take a lot of work."
+        },
+        "mia": {
+          "voice_ref": "C:/Speaktosi/audiocpp\\webui\\voice\\mia_ref.wav",
+          "reference_text": "We know Mrs. Bennet, or at least we think we do. The anxious mother, the embarrassing scenes at balls, the obsession with marriage that makes everyone around her uncomfortable. But the 2026 BBC series The Other Bennet Sister does something nobody expected. It takes Mrs. Bennet seriously, not as a joke, not as comic relief, as a villain."
+        }
+      },
+      "default_voice_preset": "arthur"
+    }
+  ]
+}

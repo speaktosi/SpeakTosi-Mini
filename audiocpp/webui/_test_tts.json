@@ -1,0 +1,1 @@
+{"model":"qwen3-tts","input":"今天是2026年9月2日,星期四。我的编号是8765,现在共有三个服务器在线,分别是8080、8081和18080端口。请确认你听到了数字八七六五。","voice_ref":"D:/AI-ModeLs/audiocpp-portable/webui/voice/zh-Bowen_man.wav","reference_text":"简单来说，人工智能是一门致力于让计算机和机器像人一样思考和行动的科学领域。","max_tokens":400,"seed":7}

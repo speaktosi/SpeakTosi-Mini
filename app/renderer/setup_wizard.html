@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>SpeakTosi 首次配置 · 云端 Token</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:22px 24px 18px; background:#12151c; color:#e6edf3;
+         font:14px/1.6 "Microsoft YaHei","Segoe UI",sans-serif; }
+  h1 { font-size:17px; margin:0 0 4px; }
+  h1 small { font-weight:400; color:#8a9aa8; font-size:12px; margin-left:6px; }
+  .card { background:#171b22; border:1px solid #2f3542; border-radius:10px; padding:14px 16px; margin:12px 0; }
+  .muted { color:#8a9aa8; font-size:12px; }
+  label { display:block; margin:10px 0 4px; font-size:12.5px; color:#cfd8e3; }
+  input, select { width:100%; padding:8px 10px; border-radius:7px; border:1px solid #38414f;
+                  background:#0e1117; color:#e6edf3; font-size:13px; }
+  .row { display:flex; gap:10px; align-items:flex-end; }
+  .row > div { flex:1; }
+  button { border:0; border-radius:7px; padding:9px 16px; font-size:13px; cursor:pointer; }
+  #saveBtn { background:#2f81f7; color:#fff; }
+  #saveBtn[disabled] { opacity:.55; cursor:default; }
+  .gray { background:#2b3240; color:#dbe4ee; }
+  #state { margin-top:10px; font-size:12.5px; color:#8a9aa8; white-space:pre-wrap; }
+  #state.ok { color:#5bd18b; }
+  #state.err { color:#ff8f8f; }
+  .warn { color:#ffcf70; }
+  ul { margin:6px 0 0 18px; padding:0; }
+  .foot { display:flex; gap:10px; margin-top:4px; }
+</style>
+</head>
+<body>
+<h1>SpeakTosi 首次配置 <small>只做一次，30 秒</small></h1>
+<div class="muted">老师的大脑跑在云端（阿里云百炼）。本机需要一把你自己的 Token 才能开口说话、看图、答题。
+  <b>Token 只保存在本机上</b>（app/backend/.env），不会随安装包上传、也不会发给任何第三方。</div>
+
+<div class="card">
+  <label>① 云端平台（默认阿里云百炼 token-plan · 有百炼普通 Key 就选第二项）</label>
+  <select id="base">
+    <option value="https://dashscope.aliyuncs.com/compatible-mode/v1">阿里云百炼 · 普通 Key（DASHSCOPE_API_KEY）</option>
+    <option value="https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1">阿里云百炼 · Token 套餐（token-plan）</option>
+  </select>
+  <label>② 模型名（不懂就别改）</label>
+  <input id="model" placeholder="qwen3.8-flash">
+  <label>③ 粘贴你的云端 Token</label>
+  <input id="key" type="password" placeholder="sk-…" autocomplete="off">
+  <div class="foot" style="margin-top:12px">
+    <button id="saveBtn">保存并测试</button>
+    <button class="gray" id="laterBtn">稍后再说</button>
+  </div>
+  <div id="state">正在读取本机状态…</div>
+</div>
+
+<div class="card">
+  <b>本机配置档位</b>
+  <div class="muted">安装包会按内存/显存自动挑档，一般不用管。机器很吃力时可在「设置」里手选。</div>
+  <ul class="muted" id="modeList"></ul>
+</div>
+
+<script>
+const A = (window.teacher && window.teacher.apiBase) || "http://127.0.0.1:8765";
+const $ = (id) => document.getElementById(id);
+const PLATFORM_MODEL = { token: "qwen3.8-flash", plain: "qwen3.8-flash" };
+
+function st(t, cls) { $("state").className = cls || ""; $("state").textContent = t; }
+
+async function load() {
+  try {
+    const s = await (await fetch(A + "/setup/status")).json();
+    $("model").value = s.llm_model || "qwen3.8-flash";
+    $("base").value = (s.llm_base || "").indexOf("token-plan") >= 0
+      ? "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+      : "https://dashscope.aliyuncs.com/compatible-mode/v1";
+    const m = s.mode || {};
+    if (s.configured) {
+      st("● 已配置" + (s.key_hint ? "（" + s.key_hint + "）" : "") + "。若仍要换 Key，粘贴新 Key 覆盖即可。", "ok");
+    } else {
+      st("○ 还没配置 Token —— 填好第③项点「保存并测试」。");
+    }
+    $("modeList").innerHTML =
+      "<li>内存 " + (m.ram_gb == null ? "?" : m.ram_gb) + " GB · 显存 " + (m.vram_gb == null ? "?" : m.vram_gb) + " GB</li>" +
+      "<li>当前生效档位：<b>" + (m.mode || "看门狗未运行（启动时自动决定）") + "</b>" +
+        (m.musetalk === false ? "　<span class='warn'>极简档：真人系老师不可用，请选卡通系老师</span>" : "") + "</li>";
+  } catch (e) { st("读取状态失败：" + e + "\n（后端可能还在启动，稍等几秒再点「保存并测试」）", "err"); }
+}
+
+$("saveBtn").onclick = async () => {
+  const key = $("key").value.trim();
+  const b = $("saveBtn"); b.disabled = true; b.textContent = "测试中…";
+  st("正在保存并测试云端连通…");
+  try {
+    const r = await (await fetch(A + "/setup/token", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: key, llm_base: $("base").value, llm_model: $("model").value.trim() }) })).json();
+    if (r.ok) {
+      st("● 配置成功，云端已连通（" + r.ms + "ms · " + r.var + "）。\n可以关掉本窗口，双击桌面快捷方式开始上课了。", "ok");
+      $("key").value = "";
+      setTimeout(() => { try { window.close(); } catch (e) {} }, 2600);
+    } else {
+      st("✗ 未连通：" + (r.err || "未知错误") + (key ? "\n（Key 已保存到本机，可直接改 Key 或换平台后再点一次）" : ""), "err");
+    }
+  } catch (e) { st("✗ 请求失败：" + e, "err"); }
+  b.disabled = false; b.textContent = "保存并测试";
+};
+$("laterBtn").onclick = () => { try { window.close(); } catch (e) {} };
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  sanity:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Python syntax check (app / engine / tools)
+        shell: pwsh
+        run: |
+          python -m compileall -q app engine tools
+          if ($LASTEXITCODE -ne 0) { throw "compileall failed" }
+
+      - name: Validate JSON files
+        shell: pwsh
+        run: |
+          $bad = 0
+          Get-ChildItem -Recurse -Filter *.json |
+            Where-Object { $_.FullName -notmatch '\\(node_modules|\.git|__pycache__)\\' } |
+            ForEach-Object {
+              try { Get-Content $_.FullName -Raw -Encoding UTF8 | ConvertFrom-Json | Out-Null }
+              catch { Write-Host ("JSON error: " + $_.FullName); $bad = 1 }
+            }
+          if ($bad -ne 0) { throw "invalid JSON found" }
+
+      - name: Mini edition invariants (two teachers only)
+        shell: pwsh
+        run: |
+          python tools/check_mini_invariants.py
+          if ($LASTEXITCODE -ne 0) { throw "mini invariants violated" }

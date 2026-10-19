@@ -1,0 +1,40 @@
+name: 💡 Feature Request / 功能需求
+description: 为 SpeakTosi-Mini 提出新的功能建议
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您的建议！请详细描述您希望添加的功能。
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 需求场景
+      description: 遇到什么问题或在什么场景下需要这个功能？
+    validations:
+      required: true
+  - type: textarea
+    id: expected_solution
+    attributes:
+      label: 期望方案
+      description: 您期望我们如何实现这个功能？
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 备选方案
+      description: 是否有其他的备选实现方案？
+    validations:
+      required: false
+  - type: dropdown
+    id: willing_to_pr
+    attributes:
+      label: 是否愿意提交 PR
+      description: 您是否愿意为该功能贡献代码并提交 Pull Request？
+      options:
+        - "是，我愿意提交 PR！"
+        - "否，希望开发者实现。"
+    validations:
+      required: true
