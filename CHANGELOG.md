@@ -2,6 +2,18 @@
 
 本文件记录 **SpeakTosi Mini(两位老师版)** 的发布历史。完整 13 师版本的历史见开发仓库。
 
+## 文档/SEO — 2026-10-22（仅仓库文案，不改功能）
+
+### 文档
+- **README 默认语言改为英文**（面向国际用户）：`README.md` 为英文、`README.zh-CN.md` 为中文；
+  删除重复内容的 `README.en.md`（重复正文对搜索排名有害）。
+- 英文 README 重写为**搜索友好版**：标题含 *Free Open-Source AI English Tutor with a Real-Time
+  Talking-Head Teacher*，正文自然覆盖 AI English tutor / AI English coach / MuseTalk talking head /
+  spoken English practice / self-hosted 等检索词，并新增 FAQ 段（免费？离线？支持哪些大模型？要什么显卡？）。
+- 发布件文档层 `tools/mini_github/` 同步改名，`tools/package_share.py` 的 mini-code 白名单
+  由 `README.en.md` 改为 `README.zh-CN.md`（否则下次打包会用旧中文版覆盖仓库 README）。
+- GitHub 仓库 About 描述与 topics 按英文关键词重设（description 英文 + 20 个 topic）。
+
 ## 1.0.3 — 2026-10-22
 
 ### 修复
