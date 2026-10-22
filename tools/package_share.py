@@ -475,7 +475,8 @@ def mini_install_txt(mode: str) -> str:
         return """SpeakTosi Mini · 两位 AI 老师 · 代码档(GitHub 发布)
 =========================================================
 本档只含【代码 + 文档】, 不含模型/运行环境/形象素材 —— 面向 GitHub 仓库发布。
-可直接跑的自包含包请取 Release 里的 SpeakTosi_Mini_*.zip(自带全部模型与环境)。
+可直接跑的自包含包(SpeakTosi_Mini_*.zip, 约 25GB, 自带全部模型与环境)超出 GitHub 单文件 2GB 上限,
+不在 Releases 提供 —— 需要开箱即用版请通过官网 https://www.speaktosi.com 联系我们获取。
 
 一、装依赖
   1) 前端 Electron:  cd app && npm install

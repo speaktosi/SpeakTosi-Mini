@@ -27,8 +27,10 @@
 
 ## Quick start
 
-**Option A — turnkey (recommended).** Grab `SpeakTosi_Mini_*.zip` from Releases (~25 GB, all models and
-Python environments included):
+**Option A — turnkey (recommended).** The self-contained `SpeakTosi_Mini_*.zip` (~25 GB, all models and
+Python environments included) **exceeds GitHub's 2 GB per-file limit, so it is not hosted in Releases** —
+to get the turnkey build, contact us via <https://www.speaktosi.com> (domain / ICP filing in progress).
+Once you have the zip:
 
 ```text
 1) Unzip into an English path without spaces, e.g. D:\SpeakTosi

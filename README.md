@@ -37,7 +37,7 @@
 
 ### 路线 A：零配置(推荐给"只想用")
 
-取 **Release 里的 `SpeakTosi_Mini_*.zip`**(约 25 GB，自带全部模型 + Python 运行环境 + Electron 依赖 + 克隆语音环境)：
+零配置自包含版 `SpeakTosi_Mini_*.zip`（约 25 GB，自带全部模型 + Python 运行环境 + Electron 依赖 + 克隆语音环境）**体积超出 GitHub 单文件 2 GB 上限，因此不在 Releases 提供** —— 需要开箱即用版的同事/机构，请通过官网 <https://www.speaktosi.com>（域名与备案办理中）联系我们获取；拿到包后照下面走：
 
 ```text
 1) 解压到任意【英文、无空格】路径，例如 D:\SpeakTosi
