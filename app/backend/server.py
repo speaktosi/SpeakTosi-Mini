@@ -26,6 +26,20 @@ CALIB_PATH = BASE / "config" / ".calib"
 AUDIO_DIR = BASE / "audio_cache"
 AUDIO_DIR.mkdir(parents=True, exist_ok=True)
 
+
+def _pkg(*parts):
+    """1022port: 包内相对路径优先(与 engine/llm.py 同口径) —— 本文件位于 <包根>/app/backend/,
+    parents[2] 即包根。解压/换盘/clone 到任意目录都读本包文件; 旧开发机绝对路径仅作兜底。
+    换机时由 tools/scripts/portable_paths.py 的改写兜第二层, 此处是第一层(不依赖任何改写)。"""
+    rel = Path(__file__).resolve().parents[2].joinpath(*parts)
+    for p in (rel, Path(r"C:\Speaktosi").joinpath(*parts)):
+        try:
+            if p.exists():
+                return p
+        except Exception:
+            pass
+    return rel
+
 # ---- 1007r4: TTS 音频缓存 LRU 淘汰 ----
 # 实测 audio_cache 无任何淘汰逻辑, 已到 316 文件/58MB 且随会话无限增长(每句新话
 # 都写一个新 wav)。上限设 512MB / 2000 文件: 命中缓存仍是纯收益, 超限就按 mtime
@@ -1115,7 +1129,7 @@ async def _synth_audiocpp(text, c, fn):
             tol = float(_vp.get('lock_tol', 0.03))
             import math as _M, os as _os, shutil as _sh, subprocess as _sp
             import wave as _W3, contextlib as _C3, numpy as _N3
-            ff = _os.environ.get('SPEAKTOSI_FFMPEG') or r'C:\Speaktosi\audiocpp\webui\ffmpeg.exe'
+            ff = _os.environ.get('SPEAKTOSI_FFMPEG') or str(_pkg('audiocpp', 'webui', 'ffmpeg.exe'))
             if not _os.path.exists(ff):
                 ff = _sh.which('ffmpeg') or ''
             if not ff:
@@ -1479,7 +1493,7 @@ def _stt_dll_dirs():
     显式登记两处现成DLL目录: CUDA工具集bin(cublas) + engine venv torch/lib(完整cudnn9)。"""
     import glob as _g
     cands = _g.glob(r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v*\bin")
-    cands.append(r"C:\Speaktosi\engine\venv\Lib\site-packages\torch\lib")
+    cands.append(str(_pkg("engine", "venv", "Lib", "site-packages", "torch", "lib")))
     ok = [d for d in cands if os.path.isdir(d)]
     for d in ok:
         try:
@@ -1639,7 +1653,7 @@ AVATARS = [
 @app.get("/avatars")
 def get_avatars():
     """形象清单: 素材包缺文件的自动隐藏, 防学生选到坏形象; voice_preset=绑定音色"""
-    av_root = Path(r"C:\Speaktosi\engine\data\avatars")
+    av_root = _pkg("engine", "data", "avatars")
     out_list = []
     for a in AVATARS:
         d = av_root / a["avatar_id"]
@@ -1656,7 +1670,7 @@ def get_voices():
     此前病根: 设置页音色下拉是静态edge音色, 四老师克隆音色压根不在里面 → 两套体系混一块。"""
     c = cfg()
     try:
-        rt = json.loads(Path(r"C:\Speaktosi\engine\data\tts_runtime.json").read_text(encoding="utf-8"))
+        rt = json.loads(_pkg("engine", "data", "tts_runtime.json").read_text(encoding="utf-8"))
         presets = (rt.get("models") or [{}])[0].get("voice_presets") or {}
     except Exception:
         presets = {}
@@ -1677,7 +1691,7 @@ def get_teachers():
     greeting 源=MD字段头(唯一真源), 此处实时解析, 不做第二份复制。"""
     cur = load_persona_safe()
     out = []
-    av_root = Path(r"C:\Speaktosi\engine\data\avatars")
+    av_root = _pkg("engine", "data", "avatars")
     for a in AVATARS:
         if not a["persona_md"]:
             continue
@@ -1735,7 +1749,7 @@ def avatar_cover(avatar_id: str):
     """形象封面: cover.png(棋盘合成图, 1004绿幕后新增)优先, 回退素材包首帧(仅白名单id, 防目录穿越)"""
     if avatar_id not in {a["avatar_id"] for a in AVATARS}:
         raise HTTPException(404, "unknown avatar")
-    d = Path(r"C:\Speaktosi\engine\data\avatars") / avatar_id
+    d = _pkg("engine", "data", "avatars") / avatar_id
     p = d / "cover.png"
     if not p.exists():
         p = d / "full_imgs" / "00000000.png"
