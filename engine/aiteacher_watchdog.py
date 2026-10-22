@@ -138,7 +138,12 @@ SERVICES = [
         # 1016双worker: 第二个 CosyVoice2 实例(18092), 供引擎并行预取/轮询(治"说两句就卡")
         # 引擎侧端点表: engine/data/tts_endpoints.json (热更新; 删掉即回单口)
         'name': 'lx_tts2', 'port': 18092,
-        'boot_group': 1,   # 1018: 并行启动组(同组并行加载/组间串行; 未标=按列表序号)
+        # 1022load: 副 worker 放【组2】—— 首句只需要 lx_tts(+musetalk), 副排在组2让首句早出来。
+        #   账: 冷启动实测双 TTS 同时冷读权重 76s(each); 热启(权重已进页缓存)只要 20s。
+        #   副等 lx_tts 健康后再起 → 它读的是已在页缓存里的同一份权重, 自身也快, 且不与首句路径抢磁盘/CPU。
+        #   安全性: 端点表列了 18092 而副未起时, _tts_pick 会走备用端点并对失败端点 60s 自动摘除, 不会静音。
+        # 回滚 = 改回 boot_group: 1
+        'boot_group': 2,
         'health': 'http://127.0.0.1:18092/health',
         'expect': '"ok"',
         'cmd': [CVPY, os.path.join(BASE, 'tools', 'cosyvoice_lx_server_v3.py'), '--port', '18092'],
@@ -349,7 +354,15 @@ def log(msg):
     print(line, flush=True)
 
 
+_REFUSE_STRIKES = {}
+MAX_REFUSE_STRIKES = 8   # 1022refused: 连续N轮"端口在却连不上"才认账真僵死
+
+
 def port_listening(port):
+    # 1022refused: 忙时监听队列会被占满, connect 直接被拒(WSAECONNREFUSED/10061),
+    # 旧逻辑据此误判"未监听"-> 可能重复拉起。先看 netstat LISTENING(不依赖连接)。
+    if pid_on_port(port):
+        return True
     s = socket.socket()
     s.settimeout(1.5)
     try:
@@ -358,16 +371,41 @@ def port_listening(port):
         s.close()
 
 
+def _port_ours(port):
+    """端口是否仍由本栈进程 LISTENING? (队列满时连接会被拒, 只能靠 netstat 判)"""
+    op = pid_on_port(port)
+    return bool(op) and is_our_proc(op)
+
+
+def _busy_or_dead(svc, why):
+    """探针失败时的仲裁: 端口仍由本栈持有 = 忙(None, 不计数, 绝不中途杀);
+    端口/进程真没了 = 死(False)。连续超 MAX_REFUSE_STRIKES 轮才改判真僵死。"""
+    if _port_ours(svc['port']):
+        n = _REFUSE_STRIKES.get(svc['name'], 0) + 1
+        _REFUSE_STRIKES[svc['name']] = n
+        if n <= MAX_REFUSE_STRIKES:
+            log('%s 探针异常(%s) 但端口%d仍由本栈LISTENING -> 判忙不判死 %d/%d'
+                % (svc['name'], why, svc['port'], n, MAX_REFUSE_STRIKES))
+            return None
+        log('%s 连续%d轮异常且端口仍在 -> 判真僵死' % (svc['name'], n))
+        return False
+    return False
+
+
 def health_ok(svc):
     try:
         req = urllib.request.Request(svc['health'], headers={'User-Agent': 'watchdog'})
         r = urllib.request.urlopen(req, timeout=8)
         body = r.read(200).decode(errors='replace')
+        _REFUSE_STRIKES.pop(svc['name'], None)
         if svc['expect'] and svc['expect'] not in body:
             return False
         return True
     except urllib.error.HTTPError as e:
-        return e.code < 500      # 302/404 = 服务活着
+        if e.code < 500:         # 302/404 = 服务活着
+            _REFUSE_STRIKES.pop(svc['name'], None)
+            return True
+        return _busy_or_dead(svc, 'HTTP %d' % e.code)
     except Exception as e:
         # 1013probe: 超时/忙 != 死。GPU占满/合成排队时 /health 会超时,
         # 旧逻辑判 FAIL -> 3连FAIL(60s) -> 把正在干活的服务杀掉
@@ -376,7 +414,13 @@ def health_ok(svc):
         m = str(e).lower()
         if isinstance(e, (TimeoutError, socket.timeout)) or 'timed out' in m or 'timeout' in m:
             return None
-        return False        # 连接被拒/坏响应 = 真死
+        # 1022refused 会话中途断链根因修复: Windows 上"监听队列满"的新连接也回
+        # WSAECONNREFUSED(10061), 与"服务真死"同码(本机亲测: backlog=1 的 socket
+        # 第2个连接即被拒)。服务忙着合成/渲染时队列被引擎并行预取占满 -> 探针被拒 ->
+        # 旧逻辑判"真死" -> 3连败(≈60s) taskkill /T 正在干活的服务 ->
+        # 用户会话中途断链(livetalking.log 10-22 18:46~18:49 实证: 引擎 25fps 照常
+        # 渲染却被判 hung 杀掉, TTS 请求随即 ConnectionReset = 静音)。
+        return _busy_or_dead(svc, '%s:%s' % (type(e).__name__, str(e)[:60]))
 
 
 def deep_tts_ok():

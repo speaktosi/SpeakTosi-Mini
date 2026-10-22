@@ -247,5 +247,11 @@ class H(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     srv = ThreadingHTTPServer(("127.0.0.1", PORT), H)
-    _log("[lx-tts] v3 serving on http://127.0.0.1:%d (ar_fast=%s)" % (PORT, AR_STATE))
+    # 1022refused: 默认监听队列仅 5。合成中(单句最长 ~20s)引擎的并行预取会占满队列,
+    # Windows 对新连接回 WSAECONNREFUSED(10061) —— 与"服务真死"同码, 看门狗据此
+    # 误杀正在合成的 worker(会话中途断链根因之一)。放大队列, 忙时探针也能被接收。
+    srv.request_queue_size = 128
+    srv.daemon_threads = True
+    _log("[lx-tts] v3 serving on http://127.0.0.1:%d (ar_fast=%s, backlog=%d)"
+         % (PORT, AR_STATE, srv.request_queue_size))
     srv.serve_forever()

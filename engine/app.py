@@ -243,7 +243,9 @@ def main():
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         loop.run_until_complete(runner.setup())
-        site = web.TCPSite(runner, listen_host, opt.listenport)
+        # 1022refused: 显式放大监听队列, 抗事件循环/GIL 饥饿时的连接突发
+        # (看门狗探针被拒风险 -> 详见 aiteacher_watchdog.py health_ok)
+        site = web.TCPSite(runner, listen_host, opt.listenport, backlog=512)
         loop.run_until_complete(site.start())
         if opt.transport=='rtcpush':
             for k in range(opt.max_session):

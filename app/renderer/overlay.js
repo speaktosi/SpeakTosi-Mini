@@ -752,12 +752,14 @@
         const s = e.streams[0];
         if (e.track.kind === 'video') vid.srcObject = s; else aud.srcObject = s;
       });
+      const _pc = pc;   // 1022ui: 本连接的实例快照 —— 防"迟到回调读已被置 null 的 pc"崩溃
       pc.addEventListener('connectionstatechange', () => {
-        if (pc.connectionState === 'connected') {
+        if (pc !== _pc) return;   // 本连接已 teardown/被新连接取代: 忽略其迟到事件(否则会误报断线并重连)
+        if (_pc.connectionState === 'connected') {
           setStatus(true, '桌面老师在线');
           greetOnce();
         }
-        else if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        else if (_pc.connectionState === 'failed' || _pc.connectionState === 'disconnected') {
           setStatus(false, '断线，5秒后重连…'); teardown(false); setTimeout(connect, 5000);
         }
       });

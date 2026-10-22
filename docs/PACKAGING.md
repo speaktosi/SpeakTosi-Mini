@@ -37,7 +37,9 @@ python tools\package_share.py --share           # 13 师源码分享包
 3. **源码文本补丁** —— `RAW_PATCHERS`：
    `app/backend/server.py`(AVATARS 用 ast 摘两位老师的原生条目 + `_TEACHER_MD` + 出厂默认值)、
    `engine/aiteacher_watchdog.py`(8011 主位 → Arthur、**深探音色 → arthur**、8010 卡通引擎块整块移除、
-   `ultra` 钳到 `lite`)、`app/main.js`(桌面窗口/状态灯 8010 → 8011)、`app/renderer/overlay.js`、
+   `ultra` 钳到 `lite`、**副 TTS worker `lx_tts2` 放 boot 组2**(1022load 冷启错峰: 首句只需 `lx_tts`+musetalk;
+   副等组1健康后再起 → 读的是已在页缓存的同一份权重, 自身更快且不抢首句的磁盘/CPU。回滚=`boot_group: 1`))、
+   `app/main.js`(桌面窗口/状态灯 8010 → 8011)、`app/renderer/overlay.js`、
    `engine/web/desktop.html`、运维脚本。
 4. **文档层覆盖** —— `tools/mini_github/**`：README、docs/、`.github/`(issue/PR 模板 + CI)、
    `.gitignore`、`.gitattributes`。zip 与目录树共用这一层，所以两个发布件的文档是同一套。
