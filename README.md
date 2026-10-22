@@ -30,9 +30,19 @@ rendering, cloned voices, speech recognition, session review and long-term memor
 orchestrated locally on your PC. Only one step ("thinking up the answer") leaves your machine, and
 you can point that at a local model if you want.
 
-**Typical searches this answers:** AI English tutor · free AI English tutor · AI English coach ·
-real-time AI English teacher · MuseTalk talking head · spoken English practice · English
-conversation practice with a digital human · self-hosted language-learning teacher.
+**Typical searches this answers:** AI English tutor · **AI-powered English tutor** · free AI English
+tutor · AI English coach · **real-time MuseTalk English teacher** · talking-head English teacher ·
+MuseTalk talking head · spoken English practice · English conversation practice with a digital
+human · ESL speaking partner · self-hosted language-learning teacher.
+
+## A real-time MuseTalk English teacher that runs on your own PC
+
+If you searched for a **real-time MuseTalk English teacher**, for an **AI-powered English tutor**
+that actually *speaks*, or for a **free AI English coach** you can self-host, this is that project.
+SpeakTosi Mini renders a photoreal teacher whose mouth is driven by **MuseTalk from the real speech
+audio**, gives it a **locally cloned voice**, and lets you practise **spoken English** one-on-one —
+then hands you a review of the session. No subscription, no account, no per-minute fee: MIT-licensed
+code, your own LLM key, everything else on your machine.
 
 ## Why SpeakTosi Mini
 
@@ -124,6 +134,15 @@ Custom avatar and voice production plus industry-specific course scripts are off
 It needs an NVIDIA GPU with **at least 12 GB VRAM** and 16 GB RAM. Weaker machines can still read the
 code and run the backend, but the real-time talking head will not keep up.
 
+**Is this an AI-powered English tutor or just a chatbot?**
+A tutor. It has a persona and a level, it remembers earlier sessions, it asks and follows up, and it
+ends with a review of your speaking — the talking head and the cloned voice are the delivery, not
+the product.
+
+**Is it good as a free AI English tutor for daily practice?**
+Yes — MIT-licensed, unlimited sessions, no account and no per-minute fee. The only running cost is
+your own LLM API key, and a cheap model is enough for conversation practice.
+
 ## Docs
 
 [INSTALL](docs/INSTALL.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [TEACHERS](docs/TEACHERS.md) ·
@@ -147,4 +166,4 @@ conversation and an end-of-session review.
 MIT — see [LICENSE](LICENSE).
 Thanks to the MuseTalk, CosyVoice2, LiveTalking, whisper, Electron and FastAPI projects.
 
-<!-- Topics: ai english tutor · free ai english tutor · ai english coach · real-time ai english teacher · musetalk talking head · english conversation practice · spoken english · esl · language learning · self-hosted · voice cloning · cosyvoice2 · electron · fastapi · windows -->
+<!-- Topics: ai english tutor · ai-powered english tutor · free ai english tutor · ai english coach · real-time musetalk english teacher · talking-head english teacher · musetalk talking head · english conversation practice · spoken english · esl · language learning · self-hosted · voice cloning · cosyvoice2 · electron · fastapi · windows -->
