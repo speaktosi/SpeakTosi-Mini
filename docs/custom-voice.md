@@ -1,17 +1,19 @@
-# 定制你的老师声音（本地 TTS 克隆）
+# Customize Your Coach Voice (Local TTS Cloning)
 
-包内 `audiocpp/` 是本地声音服务（qwen3-tts，0.6B 底座），**换声 = 提供一个参考音频 + 一份配置**，全程离线。
+**English** · [中文说明 →](zh-CN/custom-voice.md)
 
-## 步骤
+The `audiocpp/` in the package is the local voice service (qwen3-tts, 0.6B base model). **Changing voice = providing a reference audio + a configuration file**, completely offline.
 
-1. 录一段 **10~30 秒** 的干净人声样本（无背景音、正常语速），保存为 `wav`，采样率 24k 或 44.1k 均可。
-2. 把样本放入 `audiocpp/voices/`（新建目录）。
-3. 编辑 `tools/scripts/tts_demo_voice.json`（这是模板，`{AUDIOCPP_ROOT}` 会被看门狗自动渲染为本机绝对路径）：
-   - 将参考音频路径指向你的新样本；
-   - `id` 改成你自己的声音名（如 `my-voice`）。
-4. 托盘 → 「重启看门狗」，新声生效。
-5. 桌面应用 → 设置页 → 试听，确认音色与语速（±25% 变速不改变音色——WSOLA 保基频算法）。
+## Steps
 
-## 想要更高的相似度？
+1. Record a **10~30 second** clean human voice sample (no background noise, normal speaking rate), save as `wav`, either 24k or 44.1k sample rate is fine.
+2. Place the sample into `audiocpp/voices/` (create the directory).
+3. Edit `tools/scripts/tts_demo_voice.json` (this is a template, `{AUDIOCPP_ROOT}` will be automatically rendered by the watchdog as the local absolute path):
+   - Point the reference audio path to your new sample;
+   - Change `id` to your own voice name (e.g., `my-voice`).
+4. System Tray → "Restart Watchdog" (重启看门狗), the new voice takes effect.
+5. Desktop App → Settings page → Audition, confirm the voice tone and speaking rate (±25% speed change does not alter the tone—WSOLA pitch-preserving algorithm).
 
-0.6B 底座可用你自己的语音数据微调（数小时标注数据即可显著逼近）。微调脚本入口在 `tools/scripts/`，开源社区亦提供 qwen3-tts 训练配方。
+## Want Higher Similarity?
+
+The 0.6B base model can be fine-tuned using your own voice data (a few hours of annotated data can significantly improve fidelity). The fine-tuning script entry point is in `tools/scripts/`, and the open-source community also provides qwen3-tts training recipes.

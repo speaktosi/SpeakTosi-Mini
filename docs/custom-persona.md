@@ -1,17 +1,19 @@
-# 定制人设与教学语料
+# Customize Persona and Teaching Corpus
 
-## 人设（姓名 + 教学风格）
+**English** · [中文说明 →](zh-CN/custom-persona.md)
 
-桌面应用 → 托盘双击图标 → 老师窗口 → 设置页：
-- **姓名**：保存后即刻全链路生效（界面称呼、AI 自我介绍、复习笔记标题、导出文件名），无需重启。
-- **System 人设**：直接编辑教学角色描述（例："你是一位雅思口语考官，回答简洁、爱追问"）。
+## Persona (Name + Teaching Style)
 
-人设落盘在 `app/backend/config/persona.json`，backend 与引擎（`engine/llm.py` 热加载，mtime 感知）都会即时读取。
+Desktop App → Double-click system tray icon → Coach window → Settings page:
+- **Name**: Takes effect across the entire pipeline immediately upon saving (interface address, AI self-introduction, review notes title, exported filename), no restart required.
+- **System Persona**: Edit the teaching role description directly (e.g., "You are an IELTS speaking examiner, answering concisely and fond of follow-up questions").
 
-## 语料库（可选进阶）
+The persona is saved to `app/backend/config/persona.json`, which is read immediately by both the backend and the engine (`engine/llm.py` hot-reloading, mtime-aware).
 
-对话默认接你配置的 LLM API。若要**离线/私有语料教学**，可将语料做成向量库接入 backend 的 chat 组装链路（`app/backend/server.py` 的 `_sys_prompt` + 消息拼接处），社区路线推荐：本地 llama.cpp + 检索增强。此部分为开源版留白，按需自行扩展。
+## Corpus (Optional Advanced)
 
-## 复习笔记
+Conversations default to the LLM API you configured. If you want **offline/private corpus teaching**, you can turn the corpus into a vector database and integrate it into the backend's chat assembly pipeline (at the `_sys_prompt` + message concatenation point in `app/backend/server.py`). The recommended community approach: local llama.cpp + RAG (Retrieval-Augmented Generation). This part is left blank for the open-source version, extend it yourself as needed.
 
-浮层历史面板 → 「导出笔记」：自动生成按轮次整理的 Markdown（老师名动态、含词表与错题点），可存盘复用为教学语料素材。
+## Review Notes
+
+Floating history panel → "Export Notes" (导出笔记): Automatically generates Markdown organized by conversation turns (dynamic coach name, includes vocabulary lists and mistake highlights), which can be saved and reused as teaching corpus material.

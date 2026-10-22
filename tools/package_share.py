@@ -63,7 +63,7 @@ TOP_ENTRIES = [
 # 1020mini-code(GitHub 仓库档)额外顶层项: 开源仓库的元数据/文档(默认白名单里没有 .github)
 TOP_ENTRIES_EXTRA = {
     "mini-code": [".github", ".gitattributes", "CHANGELOG.md", "CONTRIBUTING.md",
-                  "SECURITY.md", "CODE_OF_CONDUCT.md", "README.en.md"],
+                  "SECURITY.md", "CODE_OF_CONDUCT.md", "README.zh-CN.md"],
 }
 
 # ---------- 目录名排除(任意层级命中即跳过整棵子树) ----------

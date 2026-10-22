@@ -1,4 +1,4 @@
-# ===== 大件与运行时环境（不进仓库；见 docs/ASSETS.md 单独分发）=====
+# ===== Large Files and Runtime Environment (Exclude from repo; see docs/ASSETS.md for separate distribution) =====
 engine/models/
 engine/venv/
 engine/data/avatars/
@@ -11,7 +11,7 @@ audiocpp/venv/
 audiocpp/gpu/
 audiocpp/cpu/
 
-# ===== 密钥与本机个人状态（绝不入库）=====
+# ===== Secrets and Local Personal Status (Never commit) =====
 *.env
 app/backend/.env
 config/student_keys.env
@@ -25,7 +25,7 @@ app/config/userdata/
 .pem
 *.key
 
-# ===== 运行时产物（启动时重建）=====
+# ===== Runtime Artifacts (Rebuilt on startup) =====
 logs/
 日志/
 *.log
@@ -39,12 +39,12 @@ engine/data/customvideo/eyegazecheck_report.json
 audio_cache/
 eval_cache/
 
-# ===== 打包产物 =====
+# ===== Build Artifacts =====
 dist/
 *.zip
 *.baiduyun.uploading.cfg
 
-# ===== 编辑器 / 系统 =====
+# ===== Editors / System =====
 .vscode/
 .idea/
 *.swp

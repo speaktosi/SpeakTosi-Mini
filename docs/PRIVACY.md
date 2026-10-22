@@ -1,41 +1,43 @@
-# 隐私说明(数据去了哪里)
+# Privacy Statement (Where Your Data Goes)
 
-一句话：**语言内容走云端大模型，其余全部留在本机**；本程序不主动上传任何文件。
+**English** · [中文说明 →](zh-CN/PRIVACY.md)
 
-## 留在本机(不出网)
+In a nutshell: **Language content goes to the cloud LLM, everything else stays on your local machine**; this program does not actively upload any files.
 
-| 数据 | 位置 |
+## Stays on Local Machine (Offline)
+
+| Data | Location |
 |---|---|
-| 会话记录 / 记忆 | `app/backend/config/history.json`、`sessions.json`、`app/backend/config/userdata/` |
-| 老师人格(soul) | `app/backend/config/persona.json`(由 `avatar/persona/*.md` 生成) |
-| 你的设置 | `app/backend/config/app.json`(窗口位置在 `app/config/electron.json`) |
-| 云端 Key | `app/backend/.env` |
-| 克隆音色参考音 | `audiocpp/webui/voice/*_ref.wav` |
-| 日志 | `app/backend/logs/`、根目录 `日志/` |
+| Conversation History / Memory | `app/backend/config/history.json`, `sessions.json`, `app/backend/config/userdata/` |
+| Coach Persona (soul) | `app/backend/config/persona.json` (generated from `avatar/persona/*.md`) |
+| Your Settings | `app/backend/config/app.json` (window position in `app/config/electron.json`) |
+| Cloud Keys | `app/backend/.env` |
+| Cloned Voice Reference Audio | `audiocpp/webui/voice/*_ref.wav` |
+| Logs | `app/backend/logs/`, root directory `日志/` |
 
-这些**都不会**被程序上传；打包时也会被剔除/清空(见 `docs/PACKAGING.md` 的脱敏项)。
+These **will not** be uploaded by the program; they will also be stripped/cleared during packaging (see the sanitization items in `docs/PACKAGING.md`).
 
-## 会发到云端的内容
+## What Gets Sent to the Cloud
 
-| 内容 | 触发条件 | 目的地 |
+| Content | Trigger Condition | Destination |
 |---|---|---|
-| 对话文本(本轮学生说的话 + 老师回复) | 每次对话 | 你在设置里填的云端大模型服务(OpenAI 兼容协议，默认阿里云百炼 `token-plan` 端点，模型 `qwen3.8-flash`) |
-| 语音合成文本 | 老师每次说话 | **本地** `18091` 的 CosyVoice2(不出网) |
-| 摄像头画面(挂眼) | 仅当你打开"挂眼" | 云端视觉模型(用于看图教学) |
+| Conversation Text (Current student utterance + coach reply) | Every conversation turn | The cloud LLM service you entered in the settings (OpenAI-compatible protocol, defaults to Alibaba Cloud Bailian `token-plan` endpoint, model `qwen3.8-flash`) |
+| Voice Synthesis Text | Every time the coach speaks | **Local** CosyVoice2 on port `18091` (offline) |
+| Camera Feed (Eye Attachment) | Only when you enable "Eye Attachment" (挂眼) | Cloud vision model (used for visual teaching) |
 
-也就是说：**只有"想内容"和"看图"两步出网**。语音识别、语音合成、口型生成全部本机完成。
+That is to say: **Only the "thinking content" and "looking at pictures" steps go online**. Speech recognition, voice synthesis, and lip-sync generation are all completed locally.
 
-## 你可以怎么控制
+## How You Can Control It
 
-- 不想用云端：把 `llm_base` 指向你自己的兼容端点(本地部署的 OpenAI 兼容服务也可)。
-- 不想挂眼：设置页关掉"摄像头/挂眼"(`app.json` 的 `eye_enabled` / `vision_enabled`)。
-- 想彻底清空本机记录：删除上面表格里的会话/记忆文件即可(下次启动会重建空文件)。
+- Don't want to use the cloud: Point `llm_base` to your own compatible endpoint (a locally deployed OpenAI-compatible service works too).
+- Don't want the camera: Turn off "Camera/Eye Attachment" in the settings page (`eye_enabled` / `vision_enabled` in `app.json`).
+- Want to completely wipe local records: Simply delete the conversation/memory files in the table above (empty files will be recreated on the next startup).
 
-## 儿童/未成年人使用
+## Use by Children/Minors
 
-本 Mini 版两位老师均为**成人向教练**人格(面向成人学习者与年轻职场人)。若给未成年人使用，
-请自行评估云端内容与摄像头图像上传的合规性(建议关闭挂眼)。
+The two coaches in this Mini edition both have **adult-oriented coaching** personas (geared towards adult learners and young professionals). If used by minors,
+please evaluate the compliance of cloud content and camera image uploads yourself (we recommend turning off the eye attachment).
 
-## 遥测
+## Telemetry
 
-**没有**。程序不含任何统计上报、崩溃上报或使用分析。唯一的网络请求是你配置的云端模型接口。
+**None**. The program contains no statistical reporting, crash reporting, or usage analytics. The only network requests are to the cloud model interfaces you configure.

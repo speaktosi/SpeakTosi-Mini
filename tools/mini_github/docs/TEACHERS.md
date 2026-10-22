@@ -1,44 +1,46 @@
-# 老师规格(Coach Arthur / Coach Mia)
+# Coach Profiles (Coach Arthur / Coach Mia)
 
-Mini 版只装这两位。两人都属 **真人系**：MuseTalk 实时口型 + CosyVoice2 克隆音色 + 成人向教练人格。
+**English** · [中文说明 →](zh-CN/TEACHERS.md)
+
+The Mini edition only includes these two. Both are **live-action** styles: MuseTalk real-time lip-sync + CosyVoice2 voice cloning + adult-oriented coaching personas.
 
 ---
 
 ## Coach Arthur 📚
 
-| 项目 | 值 |
+| Item | Value |
 |---|---|
-| 显示名 | **Arthur** |
-| 头衔 | 睿智博学导师 · *The Wise Scholar* |
-| 定位 | 深挖长句、思辨表达、把"说得出"练成"说得准" |
-| 见面语 | *"Hello, I'm Arthur. Bring me a big question, and let's explore it together."* |
-| 形象 id | `coach_arthur` |
-| 音色 preset | `arthur`(参考音 `audiocpp/webui/voice/arthur_ref.wav`) |
-| 合成参数 | `seed=2, temperature=0.5, f0=132.8Hz, tol=0.18` |
-| 人设文件 | `avatar/persona/CoachArthur.md` |
-| 形象包 / 待机序列 | `engine/data/avatars/coach_arthur/`、`engine/data/customvideo/coach_arthur_idle/` |
-| 引擎主位 | ✅ 是(8011 启动主位 = Arthur，因此"老师出现在桌面"窗口渲染的是他) |
+| Display Name | **Arthur** |
+| Title | Wise and Erudite Mentor · *The Wise Scholar* |
+| Positioning | Digging into long sentences, critical thinking, turning "can say" into "say accurately" |
+| Greeting | *"Hello, I'm Arthur. Bring me a big question, and let's explore it together."* |
+| Avatar ID | `coach_arthur` |
+| Voice Preset | `arthur` (Reference audio `audiocpp/webui/voice/arthur_ref.wav`) |
+| Synth Params | `seed=2, temperature=0.5, f0=132.8Hz, tol=0.18` |
+| Persona File | `avatar/persona/CoachArthur.md` |
+| Avatar Pack / Idle Sequence | `engine/data/avatars/coach_arthur/`, `engine/data/customvideo/coach_arthur_idle/` |
+| Engine Primary | ✅ Yes (8011 startup primary = Arthur, so he is rendered in the "coach appears on desktop" window) |
 
 ## Coach Mia 🎨
 
-| 项目 | 值 |
+| Item | Value |
 |---|---|
-| 显示名 | **Mia** |
-| 头衔 | 灵动艺术博主 · *The Vibrant Vlogger* |
-| 定位 | 日常表达、情绪与细节描述、把"没话说"变成"有话聊" |
-| 见面语 | *"Hey, I'm Mia! Tell me something about your day—let's make it sparkle."* |
-| 形象 id | `coach_mia` |
-| 音色 preset | `mia`(参考音 `audiocpp/webui/voice/mia_ref.wav`) |
-| 合成参数 | `seed=9, f0=200.0Hz, tol=0.18` |
-| 人设文件 | `avatar/persona/CoachMia.md` |
-| 形象包 | `engine/data/avatars/coach_mia/` |
-| 待机序列 | 无独立序列 → 用形象包自带帧(引擎按 `custom_config` 缺失回退) |
+| Display Name | **Mia** |
+| Title | Vibrant Art Vlogger · *The Vibrant Vlogger* |
+| Positioning | Daily expression, emotion and detail description, turning "nothing to say" into "having things to chat about" |
+| Greeting | *"Hey, I'm Mia! Tell me something about your day—let's make it sparkle."* |
+| Avatar ID | `coach_mia` |
+| Voice Preset | `mia` (Reference audio `audiocpp/webui/voice/mia_ref.wav`) |
+| Synth Params | `seed=9, f0=200.0Hz, tol=0.18` |
+| Persona File | `avatar/persona/CoachMia.md` |
+| Avatar Pack | `engine/data/avatars/coach_mia/` |
+| Idle Sequence | No independent sequence → Uses frames included in the avatar pack (Engine falls back when `custom_config` is missing) |
 
-> 语速：两位都走 `engine/data/tts_calibration.json` 的 `_default` 目标语速(138 wpm，会按实测时长动态归一化)。
+> Speaking rate: Both use the `_default` target speaking rate from `engine/data/tts_calibration.json` (138 wpm, dynamically normalized based on measured duration).
 
 ---
 
-## 人设文件格式(`avatar/persona/*.md`)
+## Persona File Format (`avatar/persona/*.md`)
 
 ```markdown
 [name] Arthur
@@ -51,33 +53,33 @@ Mini 版只装这两位。两人都属 **真人系**：MuseTalk 实时口型 + C
 YOU ARE ARTHUR …
 ```
 
-- `[字段]` 头最多读这几个键：`name / title / emoji / voice_preset / greeting`。
-- 正文 = 去掉头部之后的全部原文，与 `Shared-core-adult.md`(成人教练通用规范)拼接：
+- `[Fields]` headers: the system parses at most these keys: `name / title / emoji / voice_preset / greeting`.
+- Body = the entire original text after removing the header, concatenated with `Shared-core-adult.md` (general specifications for adult coaches):
 
 ```text
 system = Shared-core-adult.md 正文 + "\n\n" + 本老师正文 + (若有 greeting 则追加"固定开场白"锚)
 ```
 
-- `system` 与 `system_master` 内容相同(后者给"主控"用途留的副本)。
-- 生成结果落在 `app/backend/config/persona.json`，切换老师时重写(切老师 = 换魂)。
+- The `system` content is identical to `system_master` (the latter is a copy reserved for "master control" purposes).
+- The generated result is saved to `app/backend/config/persona.json`, rewritten when switching coaches (switching coach = soul swapping).
 
 ---
 
-## 加第三位老师(完整清单)
+## Adding a Third Coach (Complete Checklist)
 
-以新增 `coach_xxx` 为例，六处都要齐，少一处就"界面里有、点开是坏的"：
+Taking adding `coach_xxx` as an example, all six parts must be complete. Missing one will result in "appearing in the interface but broken when clicked":
 
-1. **形象包**：`engine/data/avatars/coach_xxx/`(latents/coords/mask/full_imgs/avator_info.json 等，MuseTalk 训练产物)。
-2. **待机序列**(可选)：`engine/data/customvideo/coach_xxx_idle/*.png`。若提供，再写
-   `engine/data/custom_config_coach_xxx.json`：`[{"audiotype":1,"imgpath":"data/customvideo/coach_xxx_idle"}]`。
-3. **注册表**：`app/backend/server.py` 的 `AVATARS` 加一条(`avatar_id / name / voice_preset / persona_md / emoji / greeting / engine`)。
-   同时把 `_TEACHER_MD` 加一项(`"coach_xxx": "CoachXxx.md"`)。
-4. **人设**：`avatar/persona/CoachXxx.md`(格式见上)。
-5. **音色**：`audiocpp/webui/voice/xxx_ref.wav` 放参考音 → `engine/data/voice_registry.json` 加 `xxx` 条目(参考音路径 + 参考文本)
-   → `tools/scripts/tts_demo_voice.json` 的 `voice_presets` 加 `xxx`(界面音色下拉由它决定)
-   → `engine/data/tts_calibration.json` 的 `voice_params` 加 `xxx`(seed/temperature/f0/tol)；
-   首次合成后会在 `engine/data/voice_anchor_*` 生成音色锚点。
-6. **形象素材**：`avatar/Coach-Xxx.png`(立绘，设置页封面用它)、`avatar/Coach-Xxx.wav`(见面语参考音，可选)。
+1. **Avatar Pack**: `engine/data/avatars/coach_xxx/` (latents/coords/mask/full_imgs/avator_info.json, etc., output from MuseTalk training).
+2. **Idle Sequence** (Optional): `engine/data/customvideo/coach_xxx_idle/*.png`. If provided, also write
+   `engine/data/custom_config_coach_xxx.json`: `[{"audiotype":1,"imgpath":"data/customvideo/coach_xxx_idle"}]`.
+3. **Registry**: Add an entry to `AVATARS` in `app/backend/server.py` (`avatar_id / name / voice_preset / persona_md / emoji / greeting / engine`).
+   Simultaneously add an item to `_TEACHER_MD` (`"coach_xxx": "CoachXxx.md"`).
+4. **Persona**: `avatar/persona/CoachXxx.md` (format as above).
+5. **Voice**: Place the reference audio at `audiocpp/webui/voice/xxx_ref.wav` → Add the `xxx` entry in `engine/data/voice_registry.json` (reference audio path + reference text)
+   → Add `xxx` to `voice_presets` in `tools/scripts/tts_demo_voice.json` (determines the interface voice dropdown)
+   → Add `xxx` to `voice_params` in `engine/data/tts_calibration.json` (seed/temperature/f0/tol);
+   After the first synthesis, a voice anchor will be generated at `engine/data/voice_anchor_*`.
+6. **Avatar Assets**: `avatar/Coach-Xxx.png` (Portrait, used for the settings page cover), `avatar/Coach-Xxx.wav` (Greeting reference audio, optional).
 
-改完重启看门狗(或托盘"启动/修复")即可。若要把新老师也带进打包件，
-在 `tools/mini_edition.py` 的 `MINI_TEACHERS` 里加上它(或直接用 `--lowmem` 打包原阵容)。
+After making changes, restart the watchdog (or click "Start/Repair" in the system tray). If you want to include the new coach in the distribution package,
+add it to `MINI_TEACHERS` in `tools/mini_edition.py` (or just use `--lowmem` to package the original lineup).

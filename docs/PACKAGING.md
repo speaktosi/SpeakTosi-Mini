@@ -1,68 +1,69 @@
-# 打包指南(怎么重新出一份)
+# Packaging Guide (How to Rebuild a Release)
 
-打包器：`tools/package_share.py`，裁剪规则：`tools/mini_edition.py`。
+**English** · [中文说明 →](zh-CN/PACKAGING.md)
+
+Packager: `tools/package_share.py`, Trimming Rules: `tools/mini_edition.py`.
 
 ```powershell
-python tools\package_share.py --mini            # 自包含 Mini 版(两位老师, ~25 GB, 解压即用)
-python tools\package_share.py --mini --dry      # 只统计体积, 不写 zip(改规则后先跑这个)
-python tools\package_share.py --mini-code --tree dist\SpeakTosi-Mini-2Teachers   # GitHub 仓库档(只代码+文档)
-python tools\package_share.py --lowmem          # 13 师完整版(原始阵容, 含卡通系)
-python tools\package_share.py --full            # 13 师 + 克隆语音运行环境
-python tools\package_share.py --share           # 13 师源码分享包
+python tools\package_share.py --mini            # Standalone Mini edition (two coaches, ~25 GB, unzip and run)
+python tools\package_share.py --mini --dry      # Only calculate sizes, don't write zip (run this first after changing rules)
+python tools\package_share.py --mini-code --tree dist\SpeakTosi-Mini-2Teachers   # GitHub repository package (code + docs only)
+python tools\package_share.py --lowmem          # 13 coaches full edition (original lineup, includes cartoon series)
+python tools\package_share.py --full            # 13 coaches + voice cloning runtime environment
+python tools\package_share.py --share           # 13 coaches source code share package
 ```
 
-双击版(给人用的)：`tools\package_mini.bat`(Mini 自包含) / `tools\package_full.bat` / `tools\package_share.bat`。
+Double-click scripts (for users): `tools\package_mini.bat` (Mini standalone) / `tools\package_full.bat` / `tools\package_share.bat`.
 
-## 档位对照
+## Edition Comparison
 
-| 档位 | 老师 | 模型/环境 | 形象素材 | 卡通系引擎 | 体量 |
+| Edition | Coaches | Models/Environment | Avatar Assets | Cartoon Series Engine | Size |
 |---|---|---|---|---|---|
-| `mini` | Arthur + Mia | ✅ 全带 | ✅ 两位 | ❌ 裁掉 | ≈ 25 GB(实际文件数与体积见产物内 `BUILD-INFO.txt`) |
-| `mini-code` | Arthur + Mia | ❌ 不带 | ❌ 不带 | ❌ 裁掉 | ≈ 200 MB |
-| `lowmem` | 13 位 | ✅ 全带 | ✅ 13 位 | ✅ 保留 | ≈ 28 GB |
-| `full` | 13 位 | ✅ 全带 | ✅ 13 位 | ✅ 保留 | ≈ 35 GB |
+| `mini` | Arthur + Mia | ✅ All included | ✅ Two coaches | ❌ Trimmed | ≈ 25 GB (See `BUILD-INFO.txt` in output for exact file count and size) |
+| `mini-code` | Arthur + Mia | ❌ Not included | ❌ Not included | ❌ Trimmed | ≈ 200 MB |
+| `lowmem` | 13 coaches | ✅ All included | ✅ 13 coaches | ✅ Kept | ≈ 28 GB |
+| `full` | 13 coaches | ✅ All included | ✅ 13 coaches | ✅ Kept | ≈ 35 GB |
 
-## Mini 档裁了什么(规则表)
+## What is Trimmed in the Mini Edition (Rules Table)
 
-规则集中在 `tools/mini_edition.py`，每条都带依据注释。落到实现上是四类动作：
+Rules are centralized in `tools/mini_edition.py`, each with explanatory comments. Implementation breaks down into four types of actions:
 
-1. **文件级保留/剔除** —— `drop_reason(rel)`：
-   `engine/data/avatars/<id>`、`engine/data/customvideo/<id>_idle`、`engine/data/custom_config_<id>.json`、
-   `audiocpp/webui/voice/<voice>_ref.wav`、`engine/data/voice_anchor_ref_<voice>_ref.wav_*.npz`、
-   `avatar/persona/<老师>.md`、`avatar/Coach-<老师>.*`、`app/backend/config/personas/*`(默认老师灵魂备份)。
-2. **配置重算** —— `build_overrides()`：
-   `app/backend/config/app.json`(默认老师/音色/唤醒词)、`persona.json`(出厂 soul，规则与
-   `app/backend/server.py` 逐字一致)、`engine/data/voice_registry.json`、`engine/data/tts_calibration.json`、
-   `tools/scripts/tts_demo_voice.json`(界面音色下拉的唯一来源)、`engine/data/custom_config.json`。
-3. **源码文本补丁** —— `RAW_PATCHERS`：
-   `app/backend/server.py`(AVATARS 用 ast 摘两位老师的原生条目 + `_TEACHER_MD` + 出厂默认值)、
-   `engine/aiteacher_watchdog.py`(8011 主位 → Arthur、**深探音色 → arthur**、8010 卡通引擎块整块移除、
-   `ultra` 钳到 `lite`、**副 TTS worker `lx_tts2` 放 boot 组2**(1022load 冷启错峰: 首句只需 `lx_tts`+musetalk;
-   副等组1健康后再起 → 读的是已在页缓存的同一份权重, 自身更快且不抢首句的磁盘/CPU。回滚=`boot_group: 1`))、
-   `app/main.js`(桌面窗口/状态灯 8010 → 8011)、`app/renderer/overlay.js`、
-   `engine/web/desktop.html`、运维脚本。
-4. **文档层覆盖** —— `tools/mini_github/**`：README、docs/、`.github/`(issue/PR 模板 + CI)、
-   `.gitignore`、`.gitattributes`。zip 与目录树共用这一层，所以两个发布件的文档是同一套。
+1. **File-level Keep/Exclude** — `drop_reason(rel)`:
+   `engine/data/avatars/<id>`, `engine/data/customvideo/<id>_idle`, `engine/data/custom_config_<id>.json`,
+   `audiocpp/webui/voice/<voice>_ref.wav`, `engine/data/voice_anchor_ref_<voice>_ref.wav_*.npz`,
+   `avatar/persona/<coach>.md`, `avatar/Coach-<coach>.*`, `app/backend/config/personas/*` (default coach soul backup).
+2. **Configuration Recalculation** — `build_overrides()`:
+   `app/backend/config/app.json` (default coach/voice/wake word), `persona.json` (factory soul, rules must match `app/backend/server.py` verbatim), `engine/data/voice_registry.json`, `engine/data/tts_calibration.json`,
+   `tools/scripts/tts_demo_voice.json` (sole source for the UI voice dropdown), `engine/data/custom_config.json`.
+3. **Source Code Text Patches** — `RAW_PATCHERS`:
+   `app/backend/server.py` (AVATARS uses ast to extract native entries for the two coaches + `_TEACHER_MD` + factory defaults),
+   `engine/aiteacher_watchdog.py` (8011 main slot → Arthur, **deep probe voice → arthur**, 8010 cartoon engine block removed completely,
+   `ultra` clamped to `lite`, **secondary TTS worker `lx_tts2` moved to boot group 2** (1022load cold start peak shifting: first sentence only needs `lx_tts`+musetalk;
+   wait for secondary group 1 to be healthy before starting → reads the same weights already in page cache, starts faster itself and doesn't compete for disk/CPU on the first sentence. Rollback=`boot_group: 1`)),
+   `app/main.js` (desktop window/status light 8010 → 8011), `app/renderer/overlay.js`,
+   `engine/web/desktop.html`, ops scripts.
+4. **Documentation Layer Overwrite** — `tools/mini_github/**`: README, docs/, `.github/` (issue/PR templates + CI),
+   `.gitignore`, `.gitattributes`. The zip and directory tree share this layer, so both release packages have the same set of documentation.
 
-> `--mini` 与 `--mini-code` **都不修改开发机源码**：所有裁剪只发生在打包内存里。
-> 要回到原阵容，`--lowmem` 打一份即可，零回滚成本。
+> Neither `--mini` nor `--mini-code` **modifies the dev machine source code**: all trimming happens entirely in memory during packaging.
+> To revert to the original lineup, simply build a `--lowmem` package, zero rollback cost.
 
-## 打包器自检(每次自动跑)
+## Packager Self-Checks (Runs automatically every time)
 
-1. 密钥嗅探：全树扫 `sk-…` / `API_KEY=…` 形态，命中即**拒绝入包**；`*.env` 一律排除。
-2. 脱敏剔除：个人五官标定、窗口位置、会话/记忆、运行时状态文件。
-3. 关键文件齐全：`MUST_PATHS`(两位老师的形象包、待机序列、音色、人设、配置…)。
-4. **Mini 专项**：
-   - `check_names()` —— 产物里还有没有别家老师的资产(残留即报)；
-   - `audit_teacher_refs()` —— `AVATARS` 是否只剩两位、看门狗还有没有旧主位/旧探针引用、音色 preset 是否恰好两位；
-   - `verify_persona_generator()` —— 用本仓库规则重算 Mia 的 soul，与仓库里**真代码生成**的 `persona.json` 逐字段比对，
-     不一致直接报错(防止把"我以为是"的 soul 打进包)。
+1. **Key Sniffing**: Scans the entire tree for `sk-…` / `API_KEY=…` patterns, **refuses to package** on hit; `*.env` is categorically excluded.
+2. **Sanitization/Exclusion**: Personal facial feature labels, window positions, sessions/memories, runtime state files.
+3. **Critical Files Completeness**: `MUST_PATHS` (avatar packages for both coaches, idle sequences, voices, personas, configs...).
+4. **Mini-Specific Checks**:
+   - `check_names()` — Reports if assets from other coaches remain in the output (residuals).
+   - `audit_teacher_refs()` — Checks if `AVATARS` is reduced to exactly two, if the watchdog still has old main slot/probe references, and if the voice preset has exactly two items.
+   - `verify_persona_generator()` — Recalculates Mia's soul using the rules in this repository and compares it verbatim against the `persona.json` **actually generated by the code** in the repo;
+     throws an error on mismatch (prevents packing a "what I thought it was" soul).
 
-自检不通过就别发出去。
+If self-checks fail, the package won't be released.
 
-## 发完之后
+## After Release
 
-- 自包含包：网盘/局域分发，写清"路径英文无空格 + 显存 ≥12 GB"。
-- 仓库档：`git init` → 推到私有/公开仓库；`avatar/*.png` 会作为 README 配图。
-- 体积大件的替代方案：把 `engine/models/**`、`engine/data/avatars/**`、`engine/data/customvideo/**`
-  作为 Release 资产(或私有对象存储)，在 Release 说明里指个链接即可 —— 见 docs/ASSETS.md。
+- Standalone Package: Cloud drive/LAN distribution, clearly state "English path without spaces + VRAM ≥12 GB".
+- Repository Package: `git init` → push to private/public repo; `avatar/*.png` will serve as README illustrations.
+- Alternative for large files: Provide `engine/models/**`, `engine/data/avatars/**`, `engine/data/customvideo/**`
+  as Release assets (or private object storage), and just point a link in the Release notes — see docs/ASSETS.md.

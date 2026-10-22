@@ -150,6 +150,9 @@ your own LLM API key, and a cheap model is enough for conversation practice.
 [PACKAGING](docs/PACKAGING.md) · [PRIVACY](docs/PRIVACY.md) · [CHANGELOG](CHANGELOG.md) ·
 [CONTRIBUTING](CONTRIBUTING.md)
 
+All documentation is written in **English** by default. Chinese versions live in
+[`docs/zh-CN/`](docs/zh-CN/) (文档中文版).
+
 ## About SpeakTosi and custom work
 
 SpeakTosi is a **customisable AI English tutor**: a photoreal talking-head avatar, live one-on-one
@@ -163,7 +166,8 @@ conversation and an end-of-session review.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE). Third-party model weights and assets keep their own upstream
+licenses — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 Thanks to the MuseTalk, CosyVoice2, LiveTalking, whisper, Electron and FastAPI projects.
 
 <!-- Topics: ai english tutor · ai-powered english tutor · free ai english tutor · ai english coach · real-time musetalk english teacher · talking-head english teacher · musetalk talking head · english conversation practice · spoken english · esl · language learning · self-hosted · voice cloning · cosyvoice2 · electron · fastapi · windows -->

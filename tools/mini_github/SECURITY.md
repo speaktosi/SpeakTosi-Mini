@@ -1,20 +1,22 @@
-# 安全策略 (Security Policy)
+# Security Policy
 
-## 支持的版本
-目前我们仅对以下主要版本提供安全更新支持：
+> 🌐 English · [中文 →](SECURITY.zh-CN.md)
 
-| 版本 | 状态 |
+## Supported Versions
+Currently, we only provide security updates for the following major versions:
+
+| Version | Status |
 | --- | --- |
-| 1.0.x | 支持中 (Supported) |
-| < 1.0 | 不支持 (Unsupported) |
+| 1.0.x | Supported |
+| < 1.0 | Unsupported |
 
-## 报告漏洞
-如果您发现了任何安全漏洞，请通过 GitHub Security Advisory 进行私有报告。我们恳求您在有补丁可用之前，不要公开披露安全问题。
+## Reporting a Vulnerability
+If you discover any security vulnerabilities, please report them privately via GitHub Security Advisory. We kindly request that you do not publicly disclose security issues before a patch is available.
 
-1. **响应时限承诺**：我们承诺在您报告后的 **48 小时内**给出初次回复。
-2. **报告内应包含的信息**：
-   - 漏洞的详细描述、产生的原因以及影响范围。
-   - 复现漏洞的详细步骤。
-   - 可能的修复方案建议。
-3. **重要限制**：
-   - ⚠️ **API Key 绝不能进仓！** 切勿在 Issues 或公共区域泄露任何私人的 API Key 凭证！
+1. **Response Time Commitment**: We promise to provide an initial response within **48 hours** after your report.
+2. **Information to Include in the Report**:
+   - A detailed description of the vulnerability, its cause, and the scope of its impact.
+   - Detailed steps to reproduce the vulnerability.
+   - Suggestions for possible fixes.
+3. **Important Limitations**:
+   - ⚠️ **API Keys must never enter the repository!** Do not leak any private API Key credentials in Issues or public areas!

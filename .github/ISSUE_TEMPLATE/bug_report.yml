@@ -1,69 +1,69 @@
-name: 🐛 Bug Report / 错误报告
-description: 创建一个错误报告，帮助我们改进 SpeakTosi-Mini
+name: 🐛 Bug Report
+description: Create a bug report to help us improve SpeakTosi-Mini
 title: "[Bug]: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        感谢您反馈问题！请填写以下信息以便我们更快定位。
+        Thank you for reporting an issue! Please fill out the information below to help us locate the problem faster.
   - type: textarea
     id: phenomenon
     attributes:
-      label: 问题现象
-      description: 请详细描述遇到了什么错误或异常。
+      label: Issue Phenomenon
+      description: Please describe the error or exception in detail.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
-      label: 复现步骤
-      description: 请提供复现该问题的具体步骤。
+      label: Steps to Reproduce
+      description: Please provide the exact steps to reproduce the issue.
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: 期望结果
-      description: 正常情况下应该发生什么？
+      label: Expected Result
+      description: What should happen under normal circumstances?
     validations:
       required: true
   - type: textarea
     id: actual
     attributes:
-      label: 实际结果
-      description: 实际发生了什么？
+      label: Actual Result
+      description: What actually happened?
     validations:
       required: true
   - type: input
     id: hardware
     attributes:
-      label: 硬件配置
-      description: 显卡型号、显存大小、系统内存大小等。
-      placeholder: "如：RTX 4090 (24GB VRAM), 32GB RAM"
+      label: Hardware Configuration
+      description: Graphics card model, VRAM size, system RAM size, etc.
+      placeholder: "e.g., RTX 4090 (24GB VRAM), 32GB RAM"
     validations:
       required: true
   - type: textarea
     id: logs
     attributes:
-      label: 日志与错误信息
-      description: 请提供 app/backend/logs 与 日志/ 目录下的相关日志内容。
+      label: Logs and Error Messages
+      description: Please provide the relevant log contents from app/backend/logs and 日志/ directories.
     validations:
       required: false
   - type: input
     id: version
     attributes:
-      label: 软件版本
-      description: 当前使用的 SpeakTosi 版本。
+      label: Software Version
+      description: The current SpeakTosi version you are using.
     validations:
       required: true
   - type: dropdown
     id: setup_bat
     attributes:
-      label: 是否已运行 SETUP.bat
-      description: 您在首次运行前是否已经成功跑过一次 SETUP.bat？
+      label: Have you run SETUP.bat?
+      description: Have you successfully run SETUP.bat once before your first launch?
       options:
-        - "是"
-        - "否"
+        - "Yes"
+        - "No"
     validations:
       required: true

@@ -1,11 +1,11 @@
-# 行尾：源码统一 LF，Windows 脚本保持 CRLF（双击运行才不出怪问题）
+# Line Endings: LF for source code uniformly, CRLF for Windows scripts (to avoid weird issues when double-clicked)
 * text=auto eol=lf
 *.bat text eol=crlf
 *.cmd text eol=crlf
 *.vbs text eol=crlf
 *.ps1 text eol=crlf
 
-# 文本类显式声明
+# Explicit text declarations
 *.py   text
 *.js   text
 *.json text
@@ -16,7 +16,7 @@
 *.yaml text
 *.txt  text
 
-# 二进制：禁止行尾转换/差异污染
+# Binaries: Prevent line ending conversion / diff pollution
 *.png binary
 *.jpg binary
 *.jpeg binary
@@ -29,8 +29,8 @@
 *.vrm binary
 *.task binary
 
-# 大件（默认不进 git —— 见 .gitignore；如需 LFS 管理，把下面几行的规则改成
-#   "*.pt filter=lfs diff=lfs merge=lfs -text" 形式，并先 `git lfs install`）
+# Large files (Exclude from git by default - see .gitignore; if LFS management is needed, change the rules below to
+#   "*.pt filter=lfs diff=lfs merge=lfs -text" format, and run `git lfs install` first)
 *.safetensors binary
 *.pt binary
 *.pth binary
@@ -45,7 +45,7 @@
 *.ckpt binary
 *.zip binary
 
-# 本仓库是 Windows 应用：PNG 等资产在 diff/merge 中不要自动改
+# This repo is a Windows application: Do not auto-modify assets like PNGs in diff/merge
 *.png -diff
 *.jpg -diff
 *.wav -diff

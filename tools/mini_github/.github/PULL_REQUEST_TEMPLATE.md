@@ -1,13 +1,13 @@
-## PR 说明
+## PR Description
 
-请简要描述此 PR 的目的和所做更改：
+Please briefly describe the purpose of this PR and the changes made:
 
 - 
 
-## 合并前自检清单
-请在提交 PR 前确认以下事项（勾选 `[x]`）：
+## Pre-Merge Self-Checklist
+Please confirm the following items before submitting the PR (check with `[x]`):
 
-- [ ] **自测过**：我已经在本地启动并检查了端口 (**8011**/18091/8765，本档无 8010) 以及托盘状态灯均正常；`python tools\check_mini_invariants.py` 通过。
-- [ ] **无密钥**：我确保没有将 API Key 或本地凭证提交到代码库。
-- [ ] **无大文件**：我没有提交任何大模型文件、多媒体测试数据或日志等本应被忽略的文件。
-- [ ] **文档已更新**：如果涉及功能调整或环境依赖变动，我已经更新了相关的文档。
+- [ ] **Tested locally**: I have started the app locally and checked that the ports (**8011**/18091/8765, no 8010 in this edition) and tray status lights are normal; `python tools\check_mini_invariants.py` passes.
+- [ ] **No Secrets**: I ensure that no API Keys or local credentials are committed to the codebase.
+- [ ] **No Large Files**: I have not committed any large model files, multimedia test data, or logs that should be ignored.
+- [ ] **Documentation Updated**: I have updated relevant documentation if this PR involves feature adjustments or environment dependency changes.

@@ -29,7 +29,7 @@
 
 > ⚠️ 本版**只含这两位老师**。原始开发版共有 13 位老师(含卡通系)，本仓库把其余 11 位的
 > 形象包、待机序列、人设、音色与整族卡通素材裁掉了：包更小、冷启动更快、物料一致。
-> 需要完整 13 师阵容：用 `tools/package_share.py --lowmem` 重新打包(见 [docs/PACKAGING.md](docs/PACKAGING.md))。
+> 需要完整 13 师阵容：用 `tools/package_share.py --lowmem` 重新打包(见 [docs/zh-CN/PACKAGING.md](docs/zh-CN/PACKAGING.md))。
 
 ---
 
@@ -46,7 +46,7 @@
 4) 托盘图标变绿即可开聊（冷启动 1~3 分钟，之后热启动约 10 秒）
 ```
 
-排障时先双击 `SETUP.bat` 看自检输出。详细步骤见 [docs/INSTALL.md](docs/INSTALL.md)。
+排障时先双击 `SETUP.bat` 看自检输出。详细步骤见 [docs/zh-CN/INSTALL.md](docs/zh-CN/INSTALL.md)。
 
 ### 路线 B：从源码装(给要改代码的人)
 
@@ -64,8 +64,8 @@ engine/venv/Scripts/pip install -r engine/requirements.txt     # Windows
 python -m venv app/backend/.venv
 app/backend/.venv/Scripts/pip install -r app/backend/requirements-backend.txt
 
-# 4) 克隆语音(18091/18092)：需要 Voice-Pro 运行环境，见 docs/ASSETS.md
-# 5) 取模型与形象素材：见 docs/ASSETS.md（二进制不进 git）
+# 4) 克隆语音(18091/18092)：需要 Voice-Pro 运行环境，见 docs/zh-CN/ASSETS.md
+# 5) 取模型与形象素材：见 docs/zh-CN/ASSETS.md（二进制不进 git）
 ```
 
 ---
@@ -108,7 +108,7 @@ audiocpp/webui/     音频工具(ffmpeg) + 参考音色 wav
 avatar/             老师人设(avatar/persona/*.md)、立绘、参考音
 runtime/            内置 Python 运行环境(自包含包才有)
 tools/              打包器、首次安装自愈、维护脚本
-docs/               文档
+docs/               文档(英文为默认；中文版在 docs/zh-CN/)
 ```
 
 ---
@@ -117,15 +117,17 @@ docs/               文档
 
 | 文档 | 内容 |
 |---|---|
-| [docs/INSTALL.md](docs/INSTALL.md) | 三条安装路线 + 首启向导 + 常见安装问题 |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 组件、数据流、端口、关键文件、为什么这样裁剪 |
-| [docs/TEACHERS.md](docs/TEACHERS.md) | Arthur / Mia 的规格与人设文件；怎么加第三位老师 |
-| [docs/ASSETS.md](docs/ASSETS.md) | 模型与形象素材清单、获取方式、LFS 说明 |
-| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 端口占用、显存不足、TTS 假死、搬家路径、venv 崩 |
-| [docs/PACKAGING.md](docs/PACKAGING.md) | `--mini` / `--mini-code` / `--lowmem` 怎么打、自检项、怎么回滚 |
-| [docs/PRIVACY.md](docs/PRIVACY.md) | 哪些数据留在本机、哪些会发到云端 |
+| [docs/zh-CN/INSTALL.md](docs/zh-CN/INSTALL.md) | 三条安装路线 + 首启向导 + 常见安装问题 |
+| [docs/zh-CN/ARCHITECTURE.md](docs/zh-CN/ARCHITECTURE.md) | 组件、数据流、端口、关键文件、为什么这样裁剪 |
+| [docs/zh-CN/TEACHERS.md](docs/zh-CN/TEACHERS.md) | Arthur / Mia 的规格与人设文件；怎么加第三位老师 |
+| [docs/zh-CN/ASSETS.md](docs/zh-CN/ASSETS.md) | 模型与形象素材清单、获取方式、LFS 说明 |
+| [docs/zh-CN/TROUBLESHOOTING.md](docs/zh-CN/TROUBLESHOOTING.md) | 端口占用、显存不足、TTS 假死、搬家路径、venv 崩 |
+| [docs/zh-CN/PACKAGING.md](docs/zh-CN/PACKAGING.md) | `--mini` / `--mini-code` / `--lowmem` 怎么打、自检项、怎么回滚 |
+| [docs/zh-CN/PRIVACY.md](docs/zh-CN/PRIVACY.md) | 哪些数据留在本机、哪些会发到云端 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本历史 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 提 PR / 报 Bug 的方式 |
+
+> 文档默认英文（`docs/`，面向国际用户）；中文版在 [`docs/zh-CN/`](docs/zh-CN/)。
 
 ---
 

@@ -1,95 +1,90 @@
-# 更新日志
+# Changelog
 
-本文件记录 **SpeakTosi Mini(两位老师版)** 的发布历史。完整 13 师版本的历史见开发仓库。
+This file documents the release history of **SpeakTosi Mini (2-Teacher Edition)**. For the complete history of the 13-teacher version, refer to the development repository.
+
+## Documentation/SEO — 2026-10-22 (Repo copy only, no functional changes)
+
+### Documentation
+- **Default README language changed to English** (for international users): `README.md` is now in English, and `README.zh-CN.md` is in Chinese;
+  Removed duplicate content `README.en.md` (duplicate content harms search rankings).
+- English README rewritten as a **Search-Friendly Version**: The title now includes *Free Open-Source AI English Tutor with a Real-Time Talking-Head Teacher*, and the text naturally covers search terms like AI English tutor / AI English coach / MuseTalk talking head / spoken English practice / self-hosted, etc., and adds an FAQ section (Free? Offline? Which LLMs are supported? What GPU is required?).
+- Synchronized renaming in the release documentation layer `tools/mini_github/`, and the mini-code whitelist in `tools/package_share.py` was changed from `README.en.md` to `README.zh-CN.md` (otherwise the next packaging would overwrite the repo's README with the old Chinese version).
+- Reset GitHub repo About description and topics with English keywords (English description + 20 topics).
 
 ## 1.0.3 — 2026-10-22
 
-### 修复
-- **对话中途"突然断链"根治（看门狗把"正忙"误判为"已死"）**：
-  Windows 上监听队列满时，新连接返回 `WSAECONNREFUSED / WinError 10061「目标计算机积极拒绝」`，
-  与"服务真的死了"**同一个错误码**（Linux 是静默丢包，所以只在 Windows 上发作）。
-  旧健康探针据此判死，把正在干活的引擎/TTS `kill` 重启 —— 实测 19:10~19:19 十三分钟内连杀 4 次，
-  而被杀前引擎日志仍在 `actual avg final fps:25.x` 正常渲染、TTS 仍在正常合成（有反证）。
-  现在改为「**忙不判死**」：探针被拒/返回 503 时，先做端口归属仲裁
-  （`netstat` 确认端口仍由本栈进程 `LISTENING` → 判"忙"，不计数、不中断；连续 8 轮仍如此才兜底回收真僵死）。
-  同时把 TTS 服务监听队列 5 → **128**、引擎 aiohttp `backlog` → **512**，让"忙"这件事本身少发生。
-- **断线重连的迟到回调崩溃**：`app/renderer/overlay.js` 的 `connectionstatechange` 监听读的是可变的 `pc` 变量，
-  `teardown()` 把 `pc` 置 `null` 后，旧连接的迟到事件会抛
-  `Cannot read properties of null (reading 'connectionState')`（实测每轮误杀都伴随该报错刷屏）。
-  现于监听内先取**本连接实例快照**，并忽略已被废弃连接的迟到事件（顺带消除"旧连接误报断线 → 触发多余重连"）。
+### Fixes
+- **Root cause fix for "sudden disconnection" mid-conversation (watchdog misjudging "busy" as "dead")**:
+  On Windows, when the listening queue is full, new connections return `WSAECONNREFUSED / WinError 10061 "Target machine actively refused"`, which is the **exact same error code** as "the service is actually dead" (Linux silently drops the packet, so this only manifests on Windows).
+  The old health probe used this to declare death, `kill`ing and restarting the actively working engine/TTS — empirical testing showed it killed 4 times within 13 minutes (19:10~19:19), while before being killed, the engine logs still showed normal rendering `actual avg final fps:25.x` and the TTS was still synthesizing normally (counter-evidence).
+  Now changed to "**Busy does not mean dead**": When the probe is refused/returns 503, it first arbitrates port ownership (`netstat` confirms the port is still `LISTENING` by the local stack process → judged as "busy", no counting, no interruption; only if this persists for 8 consecutive rounds will it fallback to recovering a true zombie).
+  Simultaneously increased the TTS service listening queue from 5 → **128**, and engine aiohttp `backlog` → **512**, to make the "busy" event itself occur less frequently.
+- **Late callback crash on reconnecting**: The `connectionstatechange` listener in `app/renderer/overlay.js` reads the mutable `pc` variable. After `teardown()` sets `pc` to `null`, late events from the old connection would throw `Cannot read properties of null (reading 'connectionState')` (empirical testing showed this error spamming the screen alongside every mistaken kill round).
+  Now, a **snapshot of the current connection instance** is taken first inside the listener, and late events for deprecated connections are ignored (this also eliminates "old connection falsely reporting disconnection → triggering redundant reconnections").
 
-### 优化
-- **冷启动错峰**：副 TTS worker(18092) 由"与首句路径并行冷读权重"改为 **boot 组2**（等 `lx_tts` 健康后再起）。
-  - 实测依据：冷启动双 TTS 同时冷读权重各约 **76s**，而热启动（权重已进页缓存）只要约 **20s**。
-  - 首句只需要 `lx_tts`（+引擎）；副 worker 排在组2后读的是**同一份已在页缓存里的权重**，
-    自身也更快，且不再与首句路径抢磁盘/CPU。
-  - 安全性：引擎端点表若已列出 18092 而副尚未就绪，`_tts_pick` 会走备用端点并对失败端点 60s 自动摘除，不会静音。
-  - 回滚：`aiteacher_watchdog.py` 里把 `lx_tts2` 的 `boot_group` 改回 `1`。
+### Optimizations
+- **Cold start staggering**: The secondary TTS worker (18092) was changed from "parallel cold-reading weights with the first sentence path" to **boot group 2** (waiting until `lx_tts` is healthy before starting).
+  - Empirical basis: Dual TTS cold starting simultaneously and cold-reading weights takes about **76s** each, whereas hot starting (weights already in page cache) only takes about **20s**.
+  - The first sentence only needs `lx_tts` (+ engine); the secondary worker queued after group 2 reads the **same weights already in the page cache**, making it faster itself, and it no longer competes with the first sentence path for Disk/CPU.
+  - Safety: If the engine endpoint table already lists 18092 but the secondary worker is not yet ready, `_tts_pick` will fall back to the backup endpoint and automatically remove the failed endpoint for 60s, preventing silence.
+  - Rollback: Change `boot_group` of `lx_tts2` back to `1` in `aiteacher_watchdog.py`.
 
 ## 1.0.1 — 2026-10-20
 
-### 新增
-- **回答长度五档可调**（设置页 → 「回答长度」）：不限 / 长回答(200 词) / 标准(120 词 · 出厂默认) / 简答(80 词) / 极简(50 词，保开口速度)。
-  文字链(`app/backend/server.py`)与语音链(`engine/llm.py`)共用同一份 `_len_rule()`，口径逐字一致（打包自检会比对，防两链漂移）。
-  - 修复旧口径缺陷：原先把"≤80 词"与"拆成 1-2 句短回合、说完就停"绑死，实测只产出约 25 词，
-    压过了 `avatar/persona/CoachArthur.md` 的 4-8 句人设契约（学生听到的"回答太短")。
-  - 现按档位分级：≤60 词 = 极简 1-2 句 / 61-100 词 = 简答 2-4 句 / >100 词 = 标准 3-6 句。实测同题同模型：
-    50→19 词、80→33 词、120→53 词、200→79 词、不限→72 词（改前 80 档仅 25 词）。
-- 官网入口：设置页底部与 README 提供 **www.speaktosi.com**；`app/main.js` 放行外链（交系统浏览器打开，不再弹空白窗口）。
-- 定制服务说明（专属老师形象 / 克隆声音 / 课程脚本）写入 README（中英）与包内安装说明。
+### Added
+- **Response length adjustable in 5 tiers** (Settings page → "Response Length"): Unlimited / Long (200 words) / Standard (120 words · Factory default) / Short (80 words) / Minimal (50 words, ensures fast initial speaking speed).
+  Both the text chain (`app/backend/server.py`) and voice chain (`engine/llm.py`) share the same `_len_rule()`, ensuring exact consistency byte-by-byte (the packaging self-check will compare them to prevent drift between the two chains).
+  - Fixed old specification flaw: Previously, "≤80 words" was hard-tied to "splitting into 1-2 short turn sentences and stopping after speaking", which empirically only produced about 25 words, overriding the 4-8 sentence persona contract in `avatar/persona/CoachArthur.md` (students felt the "response was too short").
+  - Now graded by tiers: ≤60 words = Minimal 1-2 sentences / 61-100 words = Short 2-4 sentences / >100 words = Standard 3-6 sentences. Tested with the same question and model: 50→19 words, 80→33 words, 120→53 words, 200→79 words, Unlimited→72 words (the old 80 tier only gave 25 words before the change).
+- Official website entry: **www.speaktosi.com** provided at the bottom of the Settings page and README; `app/main.js` allows external links (delegated to the system browser to open, no longer popping up blank windows).
+- Customization service instructions (exclusive teacher avatars / cloned voices / course scripts) added to the README (CN/EN) and in-package installation instructions.
 
-### 修复
-- **引擎配置路径包内自愈**：`engine/llm.py` 4 处硬编码 `C:\Speaktosi\...\config\app.json` 改为 `_cfg_json_path()`
-  —— 包内相对路径优先 → 旧机器绝对路径回退 → 可用 `SPEAKTOSI_APP_JSON` 环境变量覆盖。
-  换机/换盘解压后引擎读的一定是本包的配置（此前只靠首次启动改写源码兜底）。
-- **音色注册表换机可移植**：`voice_registry.json` 的 `ref_wav` 在其他机器缺失时，读端回退到包内同名参考音；
-  写端统一斜杠归一为 `C:/...`（此前硬校验存在性，换机会让 TTS 直接抛错）。
+### Fixes
+- **Engine config path self-healing in package**: 4 hardcoded paths like `C:\Speaktosi\...\config\app.json` in `engine/llm.py` changed to `_cfg_json_path()` —— in-package relative path priority → fallback to old machine absolute path → can be overridden with the `SPEAKTOSI_APP_JSON` environment variable.
+  After unpacking on a new machine/drive, the engine will definitively read this package's config (previously relied only on rewriting source code on first boot as a fallback).
+- **Voice registry portability across machines**: When `ref_wav` in `voice_registry.json` is missing on other machines, the reading end falls back to the reference voice of the same name within the package; the writing end normalizes slashes uniformly to `C:/...` (previously it hard-checked for existence, which would cause the TTS to throw errors directly on a new machine).
 
 ## 1.0.0 — 2026-10-20
 
-首个 Mini 版发布：只装 **Coach Arthur** 与 **Coach Mia** 两位真人系老师。
+Initial release of the Mini Edition: Only includes two real-person teachers, **Coach Arthur** and **Coach Mia**.
 
-### 新增
-- `tools/package_share.py --mini`：自包含 Mini 档(≈25 GB)，解压即用；产物内含 `BUILD-INFO.txt`(真实文件数/体积/规则指纹)。
-- `tools/package_share.py --mini-code --tree`：GitHub 仓库档(只代码 + 文档)。
-- `tools/mini_edition.py`：Mini 档裁剪规则(每条带取证依据)，开发机源码零改动，可随时 `--lowmem` 回到原阵容。
-- 完整文档集：README(中/英)、INSTALL、ARCHITECTURE、TEACHERS、ASSETS、TROUBLESHOOTING、PACKAGING、PRIVACY，
-  以及 `.github/`(issue / PR 模板 + CI)。
-- 打包器 Mini 专项自检：他师资产残留、`AVATARS` 收窄、音色数量、persona 生成器与 `server.py` 逐字段比对。
+### Added
+- `tools/package_share.py --mini`: Self-contained Mini package (≈25 GB), ready to use after extraction; the output includes `BUILD-INFO.txt` (actual file count/size/rule fingerprints).
+- `tools/package_share.py --mini-code --tree`: GitHub repository package (code + documentation only).
+- `tools/mini_edition.py`: Mini package trimming rules (each with forensic evidence), zero modifications to the development machine source code, can revert to the original lineup at any time via `--lowmem`.
+- Complete documentation set: README (CN/EN), INSTALL, ARCHITECTURE, TEACHERS, ASSETS, TROUBLESHOOTING, PACKAGING, PRIVACY, and `.github/` (issue / PR templates + CI).
+- Packager Mini specific self-check: Residual assets of other teachers, `AVATARS` narrowing, voice counts, field-by-field comparison of the persona generator and `server.py`.
 
-### 变更(相对 13 师开发版)
-- **引擎拓扑**：裁掉卡通系 viseme 引擎(8010)。Mini 版只有 MuseTalk(8011) 一个引擎，
-  并兼任 `engine/web/desktop.html`("老师出现在桌面")窗口的宿主；桌面窗口/状态灯/维护脚本的端口引用同步改为 8011。
-  - 依据：viseme 的嘴型是共享卡通图层(`avatar/viseme/*.png`)贴到待机帧上，真人底图贴卡通嘴会五官错位；
-    且此前实测过 musetalk 素材喂 viseme 引擎会卡死。
-- **引擎启动主位**：`aiteacher_demo`(演示老师) → `coach_arthur`，音色 `default` → `arthur`。
-  这样"不带 avatar 参数"的建连(桌面窗口)渲染的是本档老师，而不是已裁掉的演示老师。
-- **TTS 深探音色**：`lingxue` → `arthur`。看门狗用"真合成一句话"判 TTS 存活；
-  音色被裁掉却仍按旧音色探活，会导致 18091 永远被判"卡死"→ 反复被杀(死循环)。
-- **运行档位**：`ultra`(定义为"只跑卡通引擎")在本档无意义 → 请求 `ultra` 时按 `lite` 跑。
-- **出厂默认**：默认老师 = `coach_arthur`、音色 = `arthur`、唤醒词去掉个人化词条、云端 Key 置空。
-- **素材**：其余 11 位老师的形象包、待机序列、人设、参考音、音色锚点与 13 师名册文档不入包。
+### Changed (relative to 13-teacher dev version)
+- **Engine topology**: Trimmed the cartoon-style viseme engine (8010). The Mini version only has one engine, MuseTalk (8011), which also serves as the host for the `engine/web/desktop.html` ("teacher appears on desktop") window; port references for the desktop window/status light/maintenance scripts synchronized to 8011.
+  - Reason: viseme's mouth shapes are shared cartoon layers (`avatar/viseme/*.png`) pasted onto the idle frames; pasting cartoon mouths on a real-person base image results in misaligned facial features; and previously testing musetalk assets fed into the viseme engine caused it to freeze.
+- **Engine startup primary**: `aiteacher_demo` (demo teacher) → `coach_arthur`, voice `default` → `arthur`.
+  This ensures that connecting (desktop window) "without the avatar parameter" renders the teacher for this package, not the trimmed demo teacher.
+- **TTS deep probe voice**: `lingxue` → `arthur`. The watchdog uses "actually synthesizing a sentence" to determine if TTS is alive; probing a trimmed voice using the old voice would cause 18091 to forever be judged "stuck" → repeatedly killed (infinite loop).
+- **Operation gear**: `ultra` (defined as "only run cartoon engine") is meaningless in this package → fallback to `lite` when `ultra` is requested.
+- **Factory defaults**: Default teacher = `coach_arthur`, voice = `arthur`, wake word removed personal entries, Cloud Key emptied.
+- **Assets**: The avatar packages, idle sequences, personas, reference audios, voice anchors for the other 11 teachers, and the 13-teacher roster document are not included in the package.
 
-### 移除(相对开发仓库)
-- 旧本地 Qwen3-TTS 服务残留(`audiocpp/{models,gpu,venv,cpu}`，≈7.7 GB，1015 已退役不被加载)。
-- 开发期交接报告(`docs/SpeakTosi_1019_*.md`)与 13 师名册(`docs/AI_COACHES_PROFILES.md`)。
-- 个人状态：会话/记忆、五官标定、窗口位置、`*.env`。
+### Removed (relative to dev repository)
+- Remnants of the old local Qwen3-TTS service (`audiocpp/{models,gpu,venv,cpu}`, ≈7.7 GB, retired on 10-15 and not loaded).
+- Development period handover reports (`docs/SpeakTosi_1019_*.md`) and the 13-teacher roster (`docs/AI_COACHES_PROFILES.md`).
+- Personal state: conversations/memories, facial feature calibration, window positions, `*.env`.
 
-### 已知限制
-- 仅 Windows x64 + NVIDIA 显卡；显存 < 11 GB 时无可退档位(本档没有卡通引擎)。
-- 自包含包 ≈25 GB，网盘分发请注意上传时间。
-- 无自动更新机制。
+### Known Limitations
+- Windows x64 + NVIDIA GPU only; no fallback gear if VRAM < 11 GB (this package has no cartoon engine).
+- Self-contained package is ≈25 GB, please note upload times for cloud drive distribution.
+- No automatic update mechanism.
 
 ---
 
-## 上游沿革(摘要)
+## Upstream History (Summary)
 
-| 日期 | 里程碑 |
+| Date | Milestone |
 |---|---|
-| 10-06 | 双引擎架构：卡通系(viseme) / 真人系(MuseTalk)分流 |
-| 10-13 | 音色恒定化：CosyVoice2 克隆 + 逐位合成参数(seed/temperature/f0/容差)治音色漂移 |
-| 10-15 | 多老师音色统一到 18091 单口(删本地 Qwen3-TTS，省 5~6 GB 显存) |
-| 10-16 | 双 TTS worker 并行预取，治"说两句就卡" |
-| 10-17/18 | 冷启动顺序修正 + 并行启动组；12 GB 显存自适应；启动加速 |
-| 10-19 | 主程序自包含化 + 打包分享(share / full / lowmem 三档) |
-| 10-20 | **Mini 两位老师版**（本版） |
+| 10-06 | Dual-engine architecture: Cartoon style (viseme) / Real-person style (MuseTalk) shunting |
+| 10-13 | Voice stabilization: CosyVoice2 cloning + per-synthesis parameters (seed/temperature/f0/tolerance) to cure voice drift |
+| 10-15 | Multiple teacher voices unified into single port 18091 (removed local Qwen3-TTS, saved 5~6 GB VRAM) |
+| 10-16 | Dual TTS worker parallel prefetching, curing "stuck after speaking two sentences" |
+| 10-17/18 | Cold start order correction + parallel startup groups; 12 GB VRAM adaptation; startup acceleration |
+| 10-19 | Main program self-containment + packaged sharing (share / full / lowmem tiers) |
+| 10-20 | **Mini 2-Teacher Edition** (This version) |

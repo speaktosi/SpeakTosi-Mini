@@ -1,89 +1,90 @@
-# 安装与首次启动
+# Installation and First Launch
 
-## 0. 先选路线
+**English** · [中文说明 →](zh-CN/INSTALL.md)
 
-| 你的情况 | 走哪条 | 需要多久 |
+## 0. Choose Your Path
+
+| Your Situation | Which Path to Take | Time Required |
 |---|---|---|
-| 只想用，不想碰代码 | **A. 自包含包**(Release 的 `SpeakTosi_Mini_*.zip`) | 解压 10 分钟 + 冷启动 1~3 分钟 |
-| 要改代码/提 PR | **B. 源码 + 依赖自装** | 装依赖 30~60 分钟 |
-| 包坏了/搬家了/换机了 | **C. 自愈修复** | 1 分钟 |
+| Just want to use it, no coding | **A. Self-Contained Package** (`SpeakTosi_Mini_*.zip` from Release) | Unzip 10 mins + Cold start 1~3 mins |
+| Want to modify code/submit PRs | **B. Source Code + Manual Dependencies** | Install dependencies 30~60 mins |
+| Package broken/Moved/Changed PC | **C. Self-Healing Repair** | 1 min |
 
 ---
 
-## A. 自包含包(推荐)
+## A. Self-Contained Package (Recommended)
 
 ```text
-1) 解压到【英文、无空格】路径，例如 D:\SpeakTosi
-   ⚠️ 不要放 C:\Program Files、桌面(可能含中文/空格)、OneDrive 同步目录
-2) 磁盘：解压后约 25 GB，另请留 20 GB 给会话/日志/缓存
-3) 双击 start_speaktosi.vbs        ← 首次会静默做一次"路径自愈"
-   排障时改用：先双击 SETUP.bat 看自检输出，再双击 start_speaktosi.vbs
-4) 首次会弹【首次配置】向导：
-     选平台 → 粘贴自己的云端 Key → 「保存并测试」→ 看到"云端已连通"即完成
-5) 等托盘图标变绿(冷启动 1~3 分钟，要加载数字人 + 克隆语音模型) → 开聊
+1) Unzip to an English, space-free path, e.g., D:\SpeakTosi
+   ⚠️ Do NOT put it in C:\Program Files, Desktop (might contain Chinese/spaces), or OneDrive sync folders
+2) Disk space: ~25 GB after unzipping, plus leave 20 GB for sessions/logs/cache
+3) Double-click start_speaktosi.vbs        ← Will silently perform "path self-healing" on first launch
+   For troubleshooting: Double-click SETUP.bat to see self-check output first, then start_speaktosi.vbs
+4) The [First-Time Configuration] wizard pops up on first launch:
+   Select platform → Paste your cloud Key → "Save and Test" (保存并测试) → Done when it shows "Cloud connected" (云端已连通)
+5) Wait for the tray icon to turn green (cold start 1~3 mins to load avatar + clone voice model) → Start chatting
 ```
 
-以后要改 Key 或换运行档位：**桌面老师窗口 → 右键托盘 → 设置**。
+To change the Key or running mode later: **Right-click the tray icon from the desktop teacher window → Settings**.
 
-## B. 源码档
+## B. Source Code
 
 ```bash
-# 1) 前端
+# 1) Frontend
 cd app && npm install && cd ..
 
-# 2) 数字人引擎(8011)
+# 2) Avatar Engine (8011)
 python -m venv engine/venv
 engine/venv/Scripts/pip install -r engine/requirements.txt
 
-# 3) 后端(8765)
+# 3) Backend (8765)
 python -m venv app/backend/.venv
 app/backend/.venv/Scripts/pip install -r app/backend/requirements-backend.txt
 
-# 4) 模型与形象素材 → 见 docs/ASSETS.md(二进制不在仓库里)
-# 5) 克隆语音环境(18091/18092) → 见 docs/ASSETS.md 第 4 节
+# 4) Models and Avatar Assets → See docs/ASSETS.md (binaries not in repo)
+# 5) Clone Voice Environment (18091/18092) → See docs/ASSETS.md Section 4
 ```
 
-装完双击 `SETUP.bat` 自检，再 `start_speaktosi.vbs`。
+After installation, double-click `SETUP.bat` to self-check, then run `start_speaktosi.vbs`.
 
-## C. 搬家 / 换机自愈
+## C. Self-Healing for Moving / Changing PCs
 
-包内所有绝对路径在**首次启动时自动改写**为当前根目录(实现：`tools/scripts/first_run_setup.py` → `portable_paths.py`)。
-所以整包换盘符、换目录、拷给别人都能直接跑。手动触发：
+All absolute paths in the package are **automatically rewritten to the current root directory on the first launch** (implemented by `tools/scripts/first_run_setup.py` → `portable_paths.py`).
+So you can freely change the drive letter, move the directory, or copy the entire package to someone else, and it will just work. To trigger it manually:
 
 ```bat
-SETUP.bat      :: 里面就是 runtime\py312\python.exe tools\scripts\first_run_setup.py
+SETUP.bat      :: Under the hood: runtime\py312\python.exe tools\scripts\first_run_setup.py
 ```
 
-`first_run_setup.py` 做四件事：
-1. 修 `engine/venv`、`app/backend/.venv` 的 `pyvenv.cfg`(`home` 指向**包内** Python，换机必崩的坑就在这)；
-2. 全树改写 `C:\Speaktosi` → 当前根(跳过 venv/node_modules/模型等目录)；
-3. 补 `config/runtime_mode.json`(auto 档)；
-4. 自检关键文件是否齐全。
+`first_run_setup.py` does four things:
+1. Fixes the `home` path in `pyvenv.cfg` for `engine/venv` and `app/backend/.venv` (pointing to the Python **inside the package**—this is the pitfall that breaks environments when moving).
+2. Rewrites `C:\Speaktosi` to the current root across the tree (skipping venv/node_modules/models, etc.).
+3. Generates `config/runtime_mode.json` (auto mode).
+4. Self-checks if critical files exist.
 
 ---
 
-## 首次配置向导(必做)
+## First-Time Configuration Wizard (Mandatory)
 
-云端 Key 是唯一必须由你提供的东西(对话与翻译走云端大模型；其余全在本机)。
+The Cloud Key is the only thing you must provide (conversations and translations run on cloud LLMs; everything else runs locally).
 
-- 打开方式：首启自动弹；或托盘 → 设置 → 顶部「云端 Token」。
-- 支持"选平台 → 贴 Key → 保存并测试"，显示"云端已连通"才算成功。
-- Key 存在 `app/backend/.env`(本机文件，不入包、不进 git)。手工方式(排障用)：
-  复制 `config/student_keys.example.env` → `app/backend/.env` 再填。
+- How to open: Pops up automatically on first launch; or via Tray → Settings → "Cloud Token" at the top.
+- Flow: "Select platform → Paste Key → Save and Test". It's only successful when it shows "Cloud connected".
+- The Key is saved in `app/backend/.env` (a local file, not in the package, not in git). Manual method (for troubleshooting):
+  Copy `config/student_keys.example.env` → `app/backend/.env` and fill it in.
 
-## 启动之后怎么确认它真的活着
+## How to Verify It's Really Alive After Starting
 
-| 看什么 | 正常表现 |
+| What to Check | Normal Behavior |
 |---|---|
-| 托盘图标 | 变绿 |
-| `engine/data/runtime_mode_active.json` | 有内容(`mode` = `full` 或 `lite`) |
-| 端口 | `8011`(引擎)、`18091`(语音)、`8765`(后端)、`18999`(看门狗锁)都在 LISTENING |
-| 后端 | `http://127.0.0.1:8765/health` 返回 JSON |
-| 老师列表 | `http://127.0.0.1:8765/avatars` 只有两位：`coach_arthur`、`coach_mia` |
+| Tray Icon | Turns green |
+| `engine/data/runtime_mode_active.json` | Has content (`mode` = `full` or `lite`) |
+| Ports | `8011` (Engine), `18091` (Voice), `8765` (Backend), `18999` (Watchdog Lock) are all LISTENING |
+| Backend | `http://127.0.0.1:8765/health` returns JSON |
+| Teacher List | `http://127.0.0.1:8765/avatars` has exactly two: `coach_arthur`, `coach_mia` |
 
-> ⚠️ `tools/verify_vram.py` 与 `tools/verify_e2e_ui.py` 是**维护者工具**：它们会主动停看门狗、杀掉服务来测显存/端到端，
-> 不适合日常体检(见 docs/TROUBLESHOOTING.md)。日常自检用 `SETUP.bat` 与上表的端口/接口检查即可。
+> ⚠️ `tools/verify_vram.py` and `tools/verify_e2e_ui.py` are **maintainer tools**: they actively stop the watchdog and kill services to test VRAM/end-to-end, which is not suitable for daily health checks (see [docs/TROUBLESHOOTING.md](TROUBLESHOOTING.md)). For daily checks, just use `SETUP.bat` and the ports/API endpoints in the table above.
 
-## 卸载
+## Uninstall
 
-删除整个目录即可。除了目录内的会话/日志，不写注册表、不装服务。
+Just delete the entire directory. Except for the sessions/logs inside the directory, it does not write to the registry or install services.

@@ -1,114 +1,115 @@
-# 架构说明(1020mini)
+# Architecture Overview (1020mini)
 
-本文描述 Mini 版实际跑的拓扑、每个进程干什么、关键文件在哪，以及**为什么这样裁剪**。
-文中数字来自 1020 打包期间的逐进程/逐源码取证。
+**English** · [中文说明 →](zh-CN/ARCHITECTURE.md)
+
+This document describes the actual topology running in the Mini version, what each process does, where the key files are, and **why it is trimmed this way**.
+The numbers in this article come from per-process/per-source forensics during the 1020 packaging.
 
 ---
 
-## 1. 进程拓扑
+## 1. Process Topology
 
 ```text
 ┌────────────────────────────┐
-│ Electron 桌面 app           │  老师窗口(overlay) / 设置 / 首启向导
-│ app/main.js + renderer/     │  托盘：状态灯、启动/修复、模式切换
+│ Electron Desktop App        │  Teacher Window (overlay) / Settings / First-Run Wizard
+│ app/main.js + renderer/     │  Tray: Status Light, Start/Fix, Mode Switch
 └──────────────┬─────────────┘
-               │ HTTP :8765  (唯一接口层)
+               │ HTTP :8765  (The ONLY Interface Layer)
 ┌──────────────▼─────────────┐        ┌──────────────────────────┐
-│ 后端 FastAPI                │        │ 看门狗(常驻)              │
-│ app/backend/server.py       │        │ engine/aiteacher_watchdog │
-│ /avatars /voices /config    │        │ 单实例锁 :18999            │
-│ /persona /chat /tts …       │  ←──→  │ 按档位拉起 + 守护 + 健康探测 │
+│ Backend FastAPI             │        │ Watchdog (Daemon)        │
+│ app/backend/server.py       │        │ engine/aiteacher_watchdog│
+│ /avatars /voices /config    │        │ Single-Instance Lock :18999│
+│ /persona /chat /tts …       │  ←──→  │ Boot by Mode + Guard + Health Probe │
 └──────────────┬─────────────┘        └───────┬──────────────────┘
-               │                              │ 拉起
+               │                              │ Boots
                │                   ┌──────────┴───────────┐
-               │                   │ ① 数字人引擎 :8011    │  MuseTalk 实时口型
-               │                   │    (engine/app.py)    │  WebRTC 推流
+               │                   │ ① Avatar Engine :8011 │  MuseTalk Realtime Lip-sync
+               │                   │    (engine/app.py)    │  WebRTC Streaming
                │                   ├──────────────────────┤
-               │                   │ ② 克隆语音 :18091     │  CosyVoice2 主 worker
-               │                   │  ③ 克隆语音 :18092    │  副 worker(full 档才起)
+               │                   │ ② Clone Voice :18091  │  CosyVoice2 Primary worker
+               │                   │ ③ Clone Voice :18092  │  Secondary worker (only boots in full mode)
                │                   └──────────────────────┘
                │
-        对话文本走云端 LLM(OpenAI 兼容协议，用自己的 Key)
+        Dialogue text goes via Cloud LLM (OpenAI compatible protocol, using your own Key)
 ```
 
-- **界面只跟 8765 说话**；8765 再决定用哪台引擎、哪个音色。
-- **看门狗是唯一"拉起服务"的人**：它探测显存/内存决定运行档位，然后守护进程；
-  服务挂了会被重拉，所以"手动杀进程"通常会被它拉回来(排障见 TROUBLESHOOTING)。
-- 引擎自己也是 HTTP 服务：`:8011/` 是首页(就绪指示)，`POST /offer` 是 WebRTC 建连端点。
+- **The UI only talks to 8765**; 8765 then decides which engine and which voice to use.
+- **The Watchdog is the only one who "pulls up services"**: It probes VRAM/RAM to determine the runtime mode, and then guards the processes;
+  If a service crashes, it will be pulled up again, so "manually killing the process" usually results in it being pulled right back up (see TROUBLESHOOTING for fixes).
+- The engine itself is also an HTTP service: `:8011/` is the homepage (readiness indicator), `POST /offer` is the WebRTC connection endpoint.
 
-## 2. 一次对话的数据流
+## 2. Data Flow of a Single Turn
 
 ```text
-学生说话
-  → 唤醒词/按键触发录音
-  → 语音识别(faster-whisper，随包自带)
-  → 老师人格(soul) + 记忆 + 本轮文本 → 云端大模型(qwen3.8-flash 等)  ← 唯一走网络的一步是"想内容"
-  → 老师回复文本
-  → 克隆语音合成(CosyVoice2 :18091，音色=该老师的 preset，带语速/基频标定)
-  → 音频送入数字人引擎 :8011 → MuseTalk 生成口型帧
-  → WebRTC 推到 Electron 窗口播放(口型 + 声音同步)
-  → 对话落盘到本机(会话/记忆)，可选生成 SESSION REVIEW 复盘
+Student speaks
+  → Wake word / Keypress triggers recording
+  → Speech Recognition (faster-whisper, bundled in the package)
+  → Teacher Persona (soul) + Memory + Current Turn Text → Cloud LLM (qwen3.8-flash, etc.)  ← The only step hitting the network is "thinking content"
+  → Teacher reply text
+  → Cloned Voice Synthesis (CosyVoice2 :18091, voice = the teacher's preset, with speed/pitch calibration)
+  → Audio sent into Avatar Engine :8011 → MuseTalk generates lip-sync frames
+  → WebRTC pushes to the Electron window for playback (lip-sync + audio synchronized)
+  → Dialogue saved to local disk (sessions/memories), optionally generating a SESSION REVIEW
 ```
 
-**老师切换 = 换魂**：`/teacher/apply` 会按所选老师重建 `app/backend/config/persona.json`
-(System prompt 由 `avatar/persona/<老师>.md` 正文 + `Shared-core-adult.md` 通用规范拼成)，
-同时切音色 preset；引擎侧按 `engine` 字段路由到对应引擎。
+**Teacher Switching = Soul Swapping**: `/teacher/apply` will rebuild `app/backend/config/persona.json` based on the selected teacher
+(The System prompt is assembled from the `avatar/persona/<Teacher>.md` body + `Shared-core-adult.md` general rules),
+and switches the voice preset at the same time; the engine side routes to the corresponding engine based on the `engine` field.
 
-## 3. 关键文件对照表
+## 3. Key Files Lookup Table
 
-| 关注点 | 文件 | 说明 |
+| Concern | File | Description |
 |---|---|---|
-| 老师注册表 | `app/backend/server.py` 的 `AVATARS` | Mini 版只剩 `coach_arthur` / `coach_mia` 两条 |
-| 老师人设(soul) | `avatar/persona/CoachArthur.md`、`CoachMia.md`、`Shared-core-adult.md` | `[字段]头 + 正文`，正文即 System prompt 主体 |
-| 当前生效灵魂 | `app/backend/config/persona.json` | 由上面三个文件渲染生成(切换老师时重写) |
-| 出厂配置 | `app/backend/config/app.json` | 默认老师、音色、云端 Key、唤醒词 |
-| 引擎与守护 | `engine/aiteacher_watchdog.py` | 服务表 `SERVICES`、档位自动判定、深探 |
-| 引擎入口 | `engine/app.py` | 加载形象包、读待机序列、`/offer` 建连 |
-| 口型实现 | `engine/avatars/musetalk_avatar.py` | MuseTalk 真人系口型 |
-| 音色注册 | `engine/data/voice_registry.json` | preset → 参考音 wav + 参考文本(Mini 版：arthur / mia) |
-| 语速与音色标定 | `engine/data/tts_calibration.json` | 目标语速、seed/temperature/f0/容差(治克隆音色漂移) |
-| TTS 模板 | `tools/scripts/tts_demo_voice.json` | 看门狗每次启动据此重渲 `engine/data/tts_runtime.json` |
-| 形象包 | `engine/data/avatars/<id>/` | latents/coords/mask/full_imgs 等(约 80~115 MB/位) |
-| 待机序列 | `engine/data/customvideo/<id>_idle/*.png` | 引擎启动即读；Mini 版保留 Arthur 的(约 85 MB) |
-| 渲染源挂载 | `engine/data/custom_config_<id>.json`、`engine/data/custom_config.json` | 告诉引擎用哪套图序 |
-| 参考音 | `audiocpp/webui/voice/<voice>_ref.wav` | 克隆音色的"声源"(Mini 版：arthur_ref / mia_ref) |
-| 音色锚点 | `engine/data/voice_anchor_ref_<voice>_ref.wav_*.npz` | 句首对齐用的声学锚点 |
-| 运行档位记录 | `engine/data/runtime_mode_active.json` | 看门狗写，后端 `/health` 读来回报界面 |
+| Teacher Registry | `AVATARS` in `app/backend/server.py` | The Mini version only retains `coach_arthur` / `coach_mia` entries |
+| Teacher Persona (soul) | `avatar/persona/CoachArthur.md`, `CoachMia.md`, `Shared-core-adult.md` | `[Field] header + Body`, the body is the main System prompt |
+| Currently Active Soul | `app/backend/config/persona.json` | Rendered from the three files above (rewritten when switching teachers) |
+| Factory Config | `app/backend/config/app.json` | Default teacher, voice, Cloud Key, wake word |
+| Engine & Watchdog | `engine/aiteacher_watchdog.py` | Service table `SERVICES`, mode auto-detection, deep probing |
+| Engine Entrypoint | `engine/app.py` | Loads avatar package, reads idle sequence, `/offer` for connection |
+| Lip-sync Implementation | `engine/avatars/musetalk_avatar.py` | MuseTalk realistic lip-sync |
+| Voice Registry | `engine/data/voice_registry.json` | preset → reference audio wav + reference text (Mini version: arthur / mia) |
+| Speed & Voice Calibration | `engine/data/tts_calibration.json` | Target speed, seed/temperature/f0/tolerance (cures cloned voice drift) |
+| TTS Template | `tools/scripts/tts_demo_voice.json` | Watchdog re-renders `engine/data/tts_runtime.json` based on this at every boot |
+| Avatar Package | `engine/data/avatars/<id>/` | latents/coords/mask/full_imgs, etc. (~80~115 MB/avatar) |
+| Idle Sequence | `engine/data/customvideo/<id>_idle/*.png` | Read upon engine boot; Mini retains Arthur's (~85 MB) |
+| Render Source Mount | `engine/data/custom_config_<id>.json`, `engine/data/custom_config.json` | Tells the engine which image sequence to use |
+| Reference Audio | `audiocpp/webui/voice/<voice>_ref.wav` | The "sound source" for cloning the voice (Mini version: arthur_ref / mia_ref) |
+| Voice Anchor | `engine/data/voice_anchor_ref_<voice>_ref.wav_*.npz` | Acoustic anchors for start-of-sentence alignment |
+| Runtime Mode Record | `engine/data/runtime_mode_active.json` | Written by the watchdog, read by backend `/health` to report back to the UI |
 
-## 4. 运行档位(看门狗自动判定)
+## 4. Runtime Modes (Auto-determined by Watchdog)
 
-| 档位 | 起什么 | 实测显存(原始 13 师版) | 适用 |
+| Mode | What Boots | Measured VRAM (Original 13-Teacher Version) | Applicable Environment |
 |---|---|---|---|
-| `full` | 数字人引擎 + **双** TTS worker | ≈ 13 GB | 内存 ≥ 29 GB 且显存 ≥ 16 GB |
-| `lite` | 数字人引擎 + **单** TTS worker | ≈ 10.8 GB | 内存 16~28 GB 或显存 11~15 GB |
-| ~~`ultra`~~ | ~~只跑卡通引擎~~ | — | **Mini 版不适用**(卡通引擎已裁) |
+| `full` | Avatar Engine + **Dual** TTS workers | ≈ 13 GB | RAM ≥ 29 GB AND VRAM ≥ 16 GB |
+| `lite` | Avatar Engine + **Single** TTS worker | ≈ 10.8 GB | RAM 16~28 GB OR VRAM 11~15 GB |
+| ~~`ultra`~~ | ~~Only runs cartoon engine~~ | — | **N/A for Mini version** (cartoon engine trimmed) |
 
-Mini 版的实测口径：MuseTalk 约 9 GB + 单 TTS 约 2 GB ≈ **11 GB 显存**。
-Mini 版把 `ultra` 请求**钳到 `lite`**(原定义"只跑卡通系引擎"在本档没有对象)。
-自动判定写在 `engine/aiteacher_watchdog.py`，结果落到 `runtime_mode_active.json`，设置页可看可改。
+The measured footprint for the Mini version: MuseTalk ~9 GB + Single TTS ~2 GB ≈ **11 GB VRAM**.
+The Mini version **clamps `ultra` requests to `lite`** (the original definition of "only running cartoon-style engine" has no target in this version).
+The auto-detection logic is written in `engine/aiteacher_watchdog.py`, the result lands in `runtime_mode_active.json`, and can be viewed/changed in the settings page.
 
-## 5. Mini 版裁了什么、为什么
+## 5. What Was Trimmed in the Mini Version and Why
 
-| 裁掉的东西 | 体量 | 依据 |
+| Trimmed Item | Size | Reason |
 |---|---|---|
-| 其余 11 位老师的形象包 | ~1.1 GB | 只有 Arthur/Mia 在 `AVATARS` 里；形象包不注册就不该在包内 |
-| 其余老师的待机序列 / 人设 / 参考音 / 音色锚点 / 音色 preset | ~0.5 GB | 同上；`tts_runtime.json` 由剪过的模板重渲 → 界面音色恰好两位 |
-| **卡通系 viseme 引擎(8010)整块** | 引擎进程 + 素材 ~0.4 GB | 本档只有真人系老师。viseme 的嘴型是**共享卡通图层**(`avatar/viseme/*.png`)贴到待机帧上，真人底图贴卡通嘴 = 五官错位；且 1017 实录过 musetalk 素材喂 viseme 引擎会卡死 |
-| 旧本地 Qwen3-TTS 服务残留(`audiocpp/{models,gpu,venv,cpu}`) | ~7.7 GB | 1015 已退役，运行时根本不加载(低配版沿用同一裁剪) |
-| 个人状态：history/sessions、五官标定、窗口位置、`.env` | — | 出厂纯净化：装机后从零开始，云 Key 由首启向导填自己的 |
+| Avatar packages for the other 11 teachers | ~1.1 GB | Only Arthur/Mia are in `AVATARS`; unassigned avatars shouldn't be in the package |
+| Idle sequences/personas/ref audio/voice anchors/presets for other teachers | ~0.5 GB | Same as above; `tts_runtime.json` is re-rendered from the trimmed template → the UI voice options are exactly two |
+| **The entire cartoon-style viseme engine (8010)** | Engine process + Assets ~0.4 GB | This version only has realistic teachers. The viseme lip shapes are **shared cartoon layers** (`avatar/viseme/*.png`) pasted onto idle frames; realistic base images + cartoon lips = misaligned facial features; plus, the 1017 test showed feeding musetalk assets to the viseme engine caused deadlocks |
+| Legacy local Qwen3-TTS service leftovers (`audiocpp/{models,gpu,venv,cpu}`) | ~7.7 GB | Retired on 1015, not loaded at runtime at all (the low-spec version uses the same trimming) |
+| Personal state: history/sessions, facial calibration, window position, `.env` | — | Factory purity: Start from scratch after installation; Cloud Key must be provided via the First-Run Wizard |
 
-**为什么 8011 兼做"桌面窗口"**：`engine/web/desktop.html`(托盘"老师出现在桌面")建连时发的是
-**不带 avatar 参数**的 `/offer`，渲染的是引擎**启动主位**。Mini 版把主位设成 `coach_arthur`,
-于是那个窗口出现的就是本档老师本人，而不是一位不存在的卡通老师。
+**Why 8011 doubles as the "desktop window"**: When `engine/web/desktop.html` (Tray: "Teacher appears on desktop") connects, it sends an `/offer` **without the avatar parameter**, rendering the engine's **default boot slot**. The Mini version sets the default slot to `coach_arthur`,
+so the window that appears is the teacher for this version, not a non-existent cartoon teacher.
 
-**深探陷阱(必改项)**：看门狗用"真合成一句话"来判 TTS 是否活着(只探端口会被"端口在但不干活"骗过)。
-这句探活的音色若仍写 `lingxue`，而音色已被裁掉 → 18091 永远判"卡死" → 反复被杀，形成死循环。
-Mini 版把探活音色改成 `arthur`。
+**Deep Probe Trap (Mandatory Fix)**: The watchdog uses a "real synthesis of a sentence" to check if the TTS is alive (only probing the port can be fooled by "port is open but not working").
+If the voice used for this probe is still set to `lingxue` when that voice has been trimmed → 18091 will always be judged as "dead" → repeatedly killed, creating an endless loop.
+The Mini version changes the probe voice to `arthur`.
 
-## 6. 纯净与安全(所有打包档强制)
+## 6. Purity and Security (Enforced for all packaged versions)
 
-- 会话/记忆：`history.json` / `sessions.json` 清空；`persona.json` 复位为出厂老师。
-- 个人标定：`landmarks.json`、`.calib`、`app/config/electron.json` 一律不入包。
-- 运行时状态：`tts_endpoints.json`、`runtime_mode_active.json`、`tts_runtime.json` 不入包，启动时重建。
-- 密钥：`*.env` 全排除 + 打包前全树嗅探(命中即拒入包)；出厂 `app.json` 的 `llm_api_key` 置空。
-- 搬家自愈：包内绝对路径由 `tools/scripts/first_run_setup.py` → `portable_paths.py` 在首启时改写为当前根目录。
+- Sessions/Memories: `history.json` / `sessions.json` cleared; `persona.json` reset to the factory teacher.
+- Personal Calibrations: `landmarks.json`, `.calib`, `app/config/electron.json` are completely excluded from the package.
+- Runtime State: `tts_endpoints.json`, `runtime_mode_active.json`, `tts_runtime.json` are excluded, rebuilt on startup.
+- Keys: All `*.env` files excluded + a full-tree sniff before packaging (rejects package if a hit is found); `llm_api_key` in the factory `app.json` is blanked out.
+- Relocation Self-Healing: Absolute paths inside the package are rewritten to the current root directory at first launch by `tools/scripts/first_run_setup.py` → `portable_paths.py`.

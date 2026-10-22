@@ -1,165 +1,173 @@
-# SpeakTosi Mini · 两位 AI 英语老师
+# SpeakTosi Mini — Free Open-Source AI English Tutor with a Real-Time Talking-Head Teacher
 
-> **一个跑在你自己电脑上的 AI 英语私教**：真人质感的口型数字人 + 一对一实时对话 + 会话复盘。
-> 本仓库是 **Mini 简化版** —— 只装两位老师：**Coach Arthur**(睿智博学导师 📚) 与 **Coach Mia**(灵动艺术博主 🎨)。
+> **SpeakTosi Mini is a free, open-source AI English tutor for Windows** — a real-time talking-head
+> **AI English coach** that talks *with* you instead of quizzing you. Two teachers are included:
+> **Coach Arthur** (the wise scholar 📚) and **Coach Mia** (the vibrant vlogger 🎨).
+> The teacher's lips are driven by **MuseTalk** from the real speech audio, and the voices are
+> cloned locally with **CosyVoice2** — so you practise spoken English with a face and a voice,
+> one-on-one, at your own desk.
 
-<p align="center">
-  <img src="avatar/Coach-Arthur.png" width="45%" alt="Coach Arthur" />
-  <img src="avatar/Coach-Mia.png" width="45%" alt="Coach Mia" />
+<p>
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg">
+  <img alt="Platform: Windows 10/11 x64" src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-0078d4.svg">
+  <img alt="GPU: NVIDIA 12GB+ VRAM" src="https://img.shields.io/badge/GPU-NVIDIA%20%E2%89%A512GB%20VRAM-76b900.svg">
+  <img alt="Edition: Mini (2 teachers)" src="https://img.shields.io/badge/edition-Mini%20%C2%B7%202%20teachers-orange.svg">
+  <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg">
 </p>
 
-<p align="center">🌐 官网 <b><a href="https://www.speaktosi.com">www.speaktosi.com</a></b> · 定制专属 AI 老师形象 / 克隆声音 / 陪练课程</p>
+<p align="center">🌐 Official site: <b><a href="https://www.speaktosi.com">www.speaktosi.com</a></b> — custom AI-teacher avatars, cloned voices and tailored courses</p>
 
-[English README →](README.en.md)
+**English** · [中文说明 →](README.zh-CN.md)
 
 ---
 
-## 这个版本有什么
+## What is SpeakTosi? (in one paragraph)
+
+Most "AI English tutor" tools give you a text box or a cartoon head. SpeakTosi gives you a
+**photoreal digital teacher with real-time lip-sync** who holds a spoken conversation with you and
+then reviews it. Mini is the open-source edition: **two AI English coaches, MuseTalk talking-head
+rendering, cloned voices, speech recognition, session review and long-term memory** — all
+orchestrated locally on your PC. Only one step ("thinking up the answer") leaves your machine, and
+you can point that at a local model if you want.
+
+**Typical searches this answers:** AI English tutor · **AI-powered English tutor** · free AI English
+tutor · AI English coach · **real-time MuseTalk English teacher** · talking-head English teacher ·
+MuseTalk talking head · spoken English practice · English conversation practice with a digital
+human · ESL speaking partner · self-hosted language-learning teacher.
+
+## A real-time MuseTalk English teacher that runs on your own PC
+
+If you searched for a **real-time MuseTalk English teacher**, for an **AI-powered English tutor**
+that actually *speaks*, or for a **free AI English coach** you can self-host, this is that project.
+SpeakTosi Mini renders a photoreal teacher whose mouth is driven by **MuseTalk from the real speech
+audio**, gives it a **locally cloned voice**, and lets you practise **spoken English** one-on-one —
+then hands you a review of the session. No subscription, no account, no per-minute fee: MIT-licensed
+code, your own LLM key, everything else on your machine.
+
+## Why SpeakTosi Mini
 
 | | |
 |---|---|
-| 🎓 **两位老师** | Arthur(英式文学导师，深挖长句与思辨) / Mia(生活风博主，练日常表达与情绪细节) |
-| 🗣 **真人系口型** | MuseTalk 实时口型驱动，说英语时嘴型跟着走(不是波浪动画) |
-| 🔊 **克隆音色** | CosyVoice2 本地克隆，每位老师一套固定音色(不串音) |
-| 💬 **实时对话** | 语音唤醒 → 识别 → 大模型回答 → 说话，全程本地编排，只有"想内容"这一步走云端 |
-| 📝 **会话复盘** | 一次对话结束给一份 SESSION REVIEW：做对什么 / 一句话怎么说得更好 / 下一步练什么 |
-| 🧠 **长期记忆** | 记住学生的水平、兴趣、上次聊到哪(全部存在本机) |
-| 🖥 **桌面形态** | Electron 桌面老师窗口 + 托盘，随时开聊；支持"出现在桌面上"的悬浮窗口 |
-| 🎚 **回答长度可调** | 设置页五档：不限 / 长回答(200词) / 标准(120词·默认) / 简答(80词) / 极简(50词)；改完 30 秒内热生效，不用重启 |
+| 🎓 **A teacher, not a quiz** | It asks, listens, replies and follows up — then hands you a SESSION REVIEW: what went well, one sentence phrased better, what to practise next. |
+| 🗣 **Real-time talking head** | MuseTalk drives the mouth from the actual audio signal (not a looping wave animation), so the face matches the words while it speaks English. |
+| 🔊 **Cloned, consistent voices** | CosyVoice2 runs locally; each coach keeps one fixed voice across the whole conversation — no mid-sentence voice drift. |
+| 💬 **Live spoken loop** | Wake word, then speech recognition, then the LLM reply, then speech — orchestrated locally on your machine. |
+| 🧠 **Long-term memory** | Remembers your level, interests and last topic (stored locally, not on a server). |
+| 🔓 **Free and open source (MIT)** | Self-host it, read it, change it. No subscription, no account, no per-minute fee. |
+| 🖥 **Desktop companion** | Electron window and tray icon that can float on your desktop while you chat. |
+| 🎚 **Adjustable reply length** | Five presets in Settings (unlimited / long 200w / standard 120w default / short 80w / minimal 50w) — hot-reloads within 30 s. |
 
-> ⚠️ 本版**只含这两位老师**。原始开发版共有 13 位老师(含卡通系)，本仓库把其余 11 位的
-> 形象包、待机序列、人设、音色与整族卡通素材裁掉了：包更小、冷启动更快、物料一致。
-> 需要完整 13 师阵容：用 `tools/package_share.py --lowmem` 重新打包(见 [docs/PACKAGING.md](docs/PACKAGING.md))。
+> ⚠️ This edition ships **only these two coaches**. The original development build had 13
+> (including a cartoon line-up); everything else was pruned so the package stays small and cold
+> starts stay fast. Need the full line-up? Repackage with `tools/package_share.py --lowmem`
+> (see [docs/PACKAGING.md](docs/PACKAGING.md)).
 
----
+## Quick start
 
-## 快速开始
-
-### 路线 A：零配置(推荐给"只想用")
-
-零配置自包含版 `SpeakTosi_Mini_*.zip`（约 25 GB，自带全部模型 + Python 运行环境 + Electron 依赖 + 克隆语音环境）**体积超出 GitHub 单文件 2 GB 上限，因此不在 Releases 提供** —— 需要开箱即用版的同事/机构，请通过官网 <https://www.speaktosi.com>（域名与备案办理中）联系我们获取；拿到包后照下面走：
+**Option A — turnkey (recommended).** The self-contained `SpeakTosi_Mini_*.zip` (~25 GB, all models
+and Python environments included) **exceeds GitHub's 2 GB per-file limit, so it is not hosted in
+Releases** — to get the turnkey build, contact us via <https://www.speaktosi.com>. Once you have it:
 
 ```text
-1) 解压到任意【英文、无空格】路径，例如 D:\SpeakTosi
-2) 双击 start_speaktosi.vbs        ← 首次会静默自愈一次包内绝对路径
-3) 首启弹【首次配置】向导：选平台 → 粘贴自己的云端 Key → 「保存并测试」
-4) 托盘图标变绿即可开聊（冷启动 1~3 分钟，之后热启动约 10 秒）
+1) Unzip into an English path without spaces, e.g. D:\SpeakTosi
+2) Double-click start_speaktosi.vbs      (first run self-heals absolute paths)
+3) The first-run wizard asks for your cloud API key, then "Save and test"
+4) Wait for the tray icon to turn green (cold start 1-3 min), then start talking
 ```
 
-排障时先双击 `SETUP.bat` 看自检输出。详细步骤见 [docs/INSTALL.md](docs/INSTALL.md)。
-
-### 路线 B：从源码装(给要改代码的人)
+**Option B — from source.**
 
 ```bash
-git clone <this-repo> && cd SpeakTosi-Mini
-
-# 1) 前端 Electron
+git clone https://github.com/speaktosi/SpeakTosi-Mini.git && cd SpeakTosi-Mini
 cd app && npm install && cd ..
-
-# 2) 数字人引擎(8011)
-python -m venv engine/venv
-engine/venv/Scripts/pip install -r engine/requirements.txt     # Windows
-
-# 3) 后端(8765)
-python -m venv app/backend/.venv
-app/backend/.venv/Scripts/pip install -r app/backend/requirements-backend.txt
-
-# 4) 克隆语音(18091/18092)：需要 Voice-Pro 运行环境，见 docs/ASSETS.md
-# 5) 取模型与形象素材：见 docs/ASSETS.md（二进制不进 git）
+python -m venv engine/venv && engine/venv/Scripts/pip install -r engine/requirements.txt
+python -m venv app/backend/.venv && app/backend/.venv/Scripts/pip install -r app/backend/requirements-backend.txt
+# models + avatar assets + CosyVoice runtime: see docs/ASSETS.md
 ```
 
----
+## Requirements
 
-## 硬件与端口
-
-| 项目 | 要求 |
+| | |
 |---|---|
-| 系统 | Windows 10 / 11 x64 |
-| GPU | NVIDIA，显存 **≥ 12 GB**(推荐 16 GB)。MuseTalk 单引擎 ≈ 9 GB，克隆语音 ≈ 2 GB/实例 |
-| 内存 | **≥ 16 GB**(推荐 32 GB) |
-| 磁盘 | 自包含包解压后 ≈ 25 GB，另留 20 GB 给会话/缓存/日志 |
+| OS | Windows 10/11 x64 |
+| GPU | NVIDIA, **at least 12 GB VRAM** (16 GB recommended). MuseTalk engine about 9 GB, cloned voice about 2 GB per worker |
+| RAM | **at least 16 GB** (32 GB recommended) |
+| Disk | about 25 GB unpacked, plus about 20 GB for sessions/logs |
+| Cloud | any OpenAI-compatible LLM endpoint with your own key (a cheap tier is fine) |
 
-| 端口 | 用途 |
+## Ports
+
+| Port | Service |
 |---|---|
-| **8011** | 数字人引擎(MuseTalk 口型) |
-| 18091 / 18092 | 克隆语音(CosyVoice2，主/副 worker) |
-| 18999 | 看门狗单实例锁 |
-| 8765 | 后端 API(Electron 界面的唯一入口) |
+| **8011** | Talking-head engine (MuseTalk) |
+| 18091 / 18092 | Cloned voice (CosyVoice2 workers) |
+| 18999 | Watchdog single-instance lock |
+| 8765 | Backend API (the only endpoint the UI talks to) |
 
-> 本 Mini 版**没有 8010 端口** —— 原卡通系 viseme 引擎已裁掉，8011 兼任"桌面窗口"的渲染。
+There is **no 8010** in this edition: the cartoon viseme engine was removed and the MuseTalk engine
+also hosts the desktop-page render.
 
----
+## FAQ
 
-## 目录结构
+**Is SpeakTosi Mini really free?**
+The code is MIT-licensed and free to self-host forever. There is no subscription and no account.
+You supply your own LLM API key (a cheap model is enough), which is the only running cost.
 
-```text
-app/                Electron 桌面应用
-  main.js           主进程：托盘、窗口、模式切换
-  renderer/         界面层：overlay(老师的窗口)、settings(设置)、setup_wizard(首启向导)
-  backend/          FastAPI 后端(8765)：/avatars /voices /config /persona /chat …
-engine/             数字人引擎(LiveTalking 分支)
-  app.py            引擎入口(WebRTC 推流)
-  aiteacher_watchdog.py  看门狗：按机器档位拉起/守护全部服务
-  avatars/          musetalk_avatar.py(真人系口型) / viseme_avatar.py(卡通系，本档不启用)
-  llm.py            对话编排(接云端兼容 OpenAI 协议的模型)
-  data/             形象注册表、音色注册表、语速标定、待机帧序列
-  models/           口型/ASR 权重(不入 git)
-audiocpp/webui/     音频工具(ffmpeg) + 参考音色 wav
-avatar/             老师人设(avatar/persona/*.md)、立绘、参考音
-runtime/            内置 Python 运行环境(自包含包才有)
-tools/              打包器、首次安装自愈、维护脚本
-docs/               文档
-```
+**Does it work offline?**
+Speech recognition, the talking-head renderer and the cloned voice all run locally. Only the "write
+the reply" step calls an LLM — point it at a local OpenAI-compatible server and it runs fully offline.
 
----
+**Which LLMs does it support?**
+Any endpoint that speaks the OpenAI chat-completions protocol (DeepSeek, Qwen/DashScope, OpenAI,
+Moonshot, a local llama.cpp or vLLM server ...). You pick the platform in the first-run wizard.
 
-## 文档索引
+**How is this different from a talking-head demo?**
+A demo makes a face move. SpeakTosi closes the loop: wake word, speech recognition, tutor persona
+with a level and memory, live spoken reply, then an end-of-session review of your English.
 
-| 文档 | 内容 |
-|---|---|
-| [docs/INSTALL.md](docs/INSTALL.md) | 三条安装路线 + 首启向导 + 常见安装问题 |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 组件、数据流、端口、关键文件、为什么这样裁剪 |
-| [docs/TEACHERS.md](docs/TEACHERS.md) | Arthur / Mia 的规格与人设文件；怎么加第三位老师 |
-| [docs/ASSETS.md](docs/ASSETS.md) | 模型与形象素材清单、获取方式、LFS 说明 |
-| [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | 端口占用、显存不足、TTS 假死、搬家路径、venv 崩 |
-| [docs/PACKAGING.md](docs/PACKAGING.md) | `--mini` / `--mini-code` / `--lowmem` 怎么打、自检项、怎么回滚 |
-| [docs/PRIVACY.md](docs/PRIVACY.md) | 哪些数据留在本机、哪些会发到云端 |
-| [CHANGELOG.md](CHANGELOG.md) | 版本历史 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | 提 PR / 报 Bug 的方式 |
+**Can I use my own avatar, my own voice, or my own curriculum?**
+In the code, yes — see [docs/TEACHERS.md](docs/TEACHERS.md) and [docs/ASSETS.md](docs/ASSETS.md).
+Custom avatar and voice production plus industry-specific course scripts are offered through
+🌐 <https://www.speaktosi.com>.
 
----
+**Will it run on my laptop?**
+It needs an NVIDIA GPU with **at least 12 GB VRAM** and 16 GB RAM. Weaker machines can still read the
+code and run the backend, but the real-time talking head will not keep up.
 
-## 我自己打包一份
+**Is this an AI-powered English tutor or just a chatbot?**
+A tutor. It has a persona and a level, it remembers earlier sessions, it asks and follows up, and it
+ends with a review of your speaking — the talking head and the cloned voice are the delivery, not
+the product.
 
-```powershell
-# 自包含 Mini 版(只两位老师，解压即用)
-python tools\package_share.py --mini
+**Is it good as a free AI English tutor for daily practice?**
+Yes — MIT-licensed, unlimited sessions, no account and no per-minute fee. The only running cost is
+your own LLM API key, and a cheap model is enough for conversation practice.
 
-# GitHub 仓库档(只有代码 + 文档，不含模型/运行时/形象包)
-python tools\package_share.py --mini-code --tree dist\SpeakTosi-Mini-2Teachers
+## Docs
 
-# 13 师完整版(原始阵容，含卡通系)
-python tools\package_share.py --lowmem
-```
+[INSTALL](docs/INSTALL.md) · [ARCHITECTURE](docs/ARCHITECTURE.md) · [TEACHERS](docs/TEACHERS.md) ·
+[ASSETS](docs/ASSETS.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) ·
+[PACKAGING](docs/PACKAGING.md) · [PRIVACY](docs/PRIVACY.md) · [CHANGELOG](CHANGELOG.md) ·
+[CONTRIBUTING](CONTRIBUTING.md)
 
-打包器会在最后跑自检：只两位老师、无他师资产、音色两位、关键文件齐全、无密钥入库。
-裁剪规则集中在 [`tools/mini_edition.py`](tools/mini_edition.py)，每条都有实测/源码依据。
+All documentation is written in **English** by default. Chinese versions live in
+[`docs/zh-CN/`](docs/zh-CN/) (文档中文版).
 
----
+## About SpeakTosi and custom work
 
-## 关于 SpeakTosi 与定制服务
+SpeakTosi is a **customisable AI English tutor**: a photoreal talking-head avatar, live one-on-one
+conversation and an end-of-session review.
 
-SpeakTosi 是**可定制的 AI 英语私教**：真人质感的口型数字人 + 一对一实时对话 + 会话复盘。
+- This repo is the **open-source Mini edition** (Arthur / Mia only) — free to self-host.
+- Want **your own avatar as the teacher**, a **cloned voice**, **industry-specific course scripts**,
+  or full deployment and integration support? See 🌐 **<https://www.speaktosi.com>**
+  (you can also open an issue here).
+- Custom avatars and voice assets are not part of the Mini edition.
 
-- 本仓库 = **开源 Mini 版**（仅 Arthur / Mia 两位老师），免费自行部署。
-- 想要**自己形象的 AI 老师**、**专属克隆声音**、**贴合行业/考试的课程脚本**，或整机部署与二次开发支持：
-  🌐 官网 **<https://www.speaktosi.com>**（域名与备案办理中，即将上线；也可直接在本仓库开 Issue 留言）。
-- 定制形象与音色素材不在 Mini 版内 —— 定制服务与更多老师的版本仅在官网提供。
+## License
 
----
+MIT — see [LICENSE](LICENSE). Third-party model weights and assets keep their own upstream
+licenses — see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Thanks to the MuseTalk, CosyVoice2, LiveTalking, whisper, Electron and FastAPI projects.
 
-## 许可
-
-MIT，见 [LICENSE](LICENSE)。
-
-致谢：MuseTalk、CosyVoice2、LiveTalking、whisper、Electron 与 FastAPI 社区。
+<!-- Topics: ai english tutor · ai-powered english tutor · free ai english tutor · ai english coach · real-time musetalk english teacher · talking-head english teacher · musetalk talking head · english conversation practice · spoken english · esl · language learning · self-hosted · voice cloning · cosyvoice2 · electron · fastapi · windows -->

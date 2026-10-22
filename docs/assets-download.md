@@ -1,19 +1,21 @@
-# 大文件资产下载与放置
+# Large Asset Downloads and Placement
 
-出于体积与协议原因，以下资产**不随 git 仓库分发**。克隆代码后，请下载并放到指定位置（整包用户可跳过本节）。
+**English** · [中文说明 →](zh-CN/assets-download.md)
 
-| 资产 | 放置位置 | 说明 |
+Due to size and licensing reasons, the following assets are **not distributed with the git repository**. After cloning the code, please download and place them in the specified locations (users of the full packaged version can skip this section).
+
+| Asset | Placement Location | Description |
 |---|---|---|
-| MuseTalk V15 权重 (`unet.pth` 等) | `engine/models/musetalkV15/` `engine/models/musetalk/` | 官方 HuggingFace `TMElyralab/MuseTalk` 的 v15 权重 |
-| 音频特征模型 (whisper 等) | `engine/models/whisper/` | MuseTalk 官方依赖链 |
-| VRM 示例形象 | `app/assets/` | 任意开源 VRM（需商用许可） |
-| 示例老师 latents | `engine/data/avatars/` | 按 `docs/custom-avatar.md` 自训生成 |
-| Python 基座 | `runtime/py311`, `runtime/py312` | 官方 embeddable zip 解压（py312 须 `python312._pth` 内启用 `import site`） |
-| TTS 模型 | `audiocpp/models/` | qwen3-tts 基座权重（Apache-2.0） |
+| MuseTalk V15 Weights (`unet.pth`, etc.) | `engine/models/musetalkV15/`, `engine/models/musetalk/` | Official HuggingFace `TMElyralab/MuseTalk` v15 weights |
+| Audio Feature Models (whisper, etc.) | `engine/models/whisper/` | MuseTalk official dependency chain |
+| VRM Example Avatars | `app/assets/` | Any open-source VRM (commercial license required) |
+| Example Coach latents | `engine/data/avatars/` | Self-trained generation according to `docs/custom-avatar.md` |
+| Python Base | `runtime/py311`, `runtime/py312` | Official embeddable zip extracted (py312 requires enabling `import site` in `python312._pth`) |
+| TTS Models | `audiocpp/models/` | qwen3-tts base weights (Apache-2.0) |
 
-放置完成后双击 `start_speaktosi.vbs`，看门狗会自检拉起全栈。
+After placement is complete, double-click `start_speaktosi.vbs`; the watchdog will self-check and spin up the full stack.
 
-## 从源码重建环境（高级）
+## Rebuilding the Environment from Source (Advanced)
 
 ```bat
 :: 引擎环境（CUDA 12.8 / RTX50）
