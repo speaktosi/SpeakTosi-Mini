@@ -2,7 +2,7 @@
 
 > 🌐 English · [中文 →](CONTRIBUTING.zh-CN.md)
 
-Thank you for your interest in SpeakTosi-Mini! This guide will help you understand how to contribute to the project.
+Thank you for your interest in SpeakTosi Mini! This guide will help you understand how to contribute to the project.
 
 ## Table of Contents
 1. [Development Environment Setup](#development-environment-setup)

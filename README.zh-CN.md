@@ -51,7 +51,7 @@
 ### 路线 B：从源码装(给要改代码的人)
 
 ```bash
-git clone <this-repo> && cd SpeakTosi-Mini
+git clone <this-repo> && cd ai-english-tutor
 
 # 1) 前端 Electron
 cd app && npm install && cd ..

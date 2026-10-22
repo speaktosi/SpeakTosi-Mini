@@ -78,7 +78,7 @@ Releases** — to get the turnkey build, contact us via <https://www.speaktosi.c
 **Option B — from source.**
 
 ```bash
-git clone https://github.com/speaktosi/SpeakTosi-Mini.git && cd SpeakTosi-Mini
+git clone https://github.com/speaktosi/ai-english-tutor.git && cd ai-english-tutor
 cd app && npm install && cd ..
 python -m venv engine/venv && engine/venv/Scripts/pip install -r engine/requirements.txt
 python -m venv app/backend/.venv && app/backend/.venv/Scripts/pip install -r app/backend/requirements-backend.txt
